@@ -6745,7 +6745,6 @@ $('#routes').innerHTML = Object.keys(SITES)
   .map(r => `<option value="${ORIGIN}${r}">`).join('') +
   CATALOGUE.slice(0, 3).map(p => `<option value="${ORIGIN}/product/${p.slug}">`).join('');
 navTo('/');
-const firstVisit = !readState().lesson;
 {
   const st = readState();
   openLesson(LESSON[st.lesson] ? st.lesson : LESSONS[0].id, {mode: st.mode || 'starter'});
@@ -6755,8 +6754,6 @@ if (storedSplit !== null && storedSplit !== '') setSplit(+storedSplit || 0, fals
 if (storedHSplit !== null && storedHSplit !== '') setHSplit(+storedHSplit || 0, false);
 renderRec();
 pagedot.className = 'dot live';
-/* first time here: show what there is to learn */
-if (firstVisit) openDrawer();
 </script>
 </body>
 </html>

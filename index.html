@@ -267,7 +267,20 @@ body.splitting .stage,body.splitting-y .stage{pointer-events:none}
 .ls-tasks summary::-webkit-details-marker{display:none}
 .ls-tasks summary::before{content:'▸';font-size:10px;color:var(--dim);transition:transform .15s}
 .ls-tasks[open] summary::before{transform:rotate(90deg)}
-.ls-tasks ol{margin:7px 0 0;padding-left:22px;display:grid;gap:4px;line-height:1.45}
+.ls-tasks ol{margin:7px 0 0;padding:0;list-style:none;display:grid;gap:5px;line-height:1.45}
+/* each task ticks itself when a green run of your code does what it asks */
+.ls-tasks li{display:flex;gap:9px;align-items:flex-start}
+.ls-tasks li .ck{flex:none;width:17px;height:17px;margin-top:1px;border-radius:50%;border:1.5px solid var(--line);
+  display:grid;place-items:center;font-size:10px;line-height:1;color:transparent;transition:background .2s,border-color .2s}
+.ls-tasks li.done{color:var(--muted)}
+.ls-tasks li.done .ck{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
+.ls-tasks li.just .ck{animation:ls-tick .6s ease}
+@keyframes ls-tick{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.ls-tasks .tcount{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--dim)}
+.ls-tasks .tcount.all{color:var(--ok-ink);font-weight:600}
+.ls-tasks .thint{margin:7px 0 0;font-size:11px;color:var(--dim)}
+.ls-tasks .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){ .ls-tasks li.just .ck{animation:none} }
 .ls-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ls-actions .spacer{flex:1}
 .ls-mode{display:inline-flex;padding:3px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
@@ -276,8 +289,6 @@ body.splitting .stage,body.splitting-y .stage{pointer-events:none}
 .ls-url{font-family:var(--mono);font-size:11px;color:var(--accent);padding:4px 11px;border-radius:999px;
   border:1px solid var(--line);background:var(--panel);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ls-url:hover{border-color:var(--accent)}
-.btn.ls-done{padding:5px 12px;font-size:12px}
-.btn.ls-done[aria-pressed=true]{background:rgba(18,184,134,.15);border-color:transparent;color:var(--ok-ink)}
 .btn.ls-reset{padding:5px 11px;font-size:12px}
 .ls-note{margin:0;font-size:11.5px;color:var(--warn-ink);font-weight:500}
 
@@ -314,6 +325,9 @@ body.splitting .stage,body.splitting-y .stage{pointer-events:none}
   display:grid;place-items:center;font-size:10px;color:transparent}
 .ls-item.done .ck{background:var(--accent-2);border-color:var(--accent-2);color:#fff}
 .ls-play{margin-top:6px}
+.ls-dfoot{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--muted)}
+.ls-dfoot span{flex:1}
 .ls-empty{padding:30px 16px;text-align:center;color:var(--muted);font-size:12.5px}
 
 /* a nudge in the browser chrome when the page open has a lesson of its own */
@@ -963,10 +977,21 @@ html[data-theme="dark"] #loginGate{
 @keyframes lg-shake{25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
 @media (max-width:480px){#lgCard{padding:18px 16px 14px}}
 @media (prefers-reduced-motion:reduce){#lgCard.lg-shake{animation:none}}
+/* the username and password, shown above the form to copy and paste */
+#lgCard .lg-demo{margin:0 0 16px;padding:6px 12px;border:1px solid var(--lg-line);border-radius:12px;background:var(--lg-soft)}
+#lgCard .lg-cred{display:flex;align-items:center;gap:10px;padding:5px 0}
+#lgCard .lg-cred + .lg-cred{border-top:1px dashed var(--lg-line)}
+#lgCard .lg-cred span{flex:none;width:80px;font:500 12.5px/1.5 var(--lg-ui);color:var(--lg-muted)}
+#lgCard .lg-cred code{flex:1;min-width:0;font:600 14px/1.6 ui-monospace,Consolas,monospace;color:var(--lg-ink);
+  user-select:all;-webkit-user-select:all;cursor:text}
 </style>
 <div id="loginGate" role="dialog" aria-modal="true" aria-label="Sign in">
   <main id="lgCard">
     <div class="lg-brand"><i aria-hidden="true">HS</i><div><b>Playwright Playground</b><small>Sign in to open the playground</small></div></div>
+    <div class="lg-demo">
+      <div class="lg-cred"><span>Username</span><code>admin</code></div>
+      <div class="lg-cred"><span>Password</span><code>admin</code></div>
+    </div>
     <!-- onsubmit: never let a click put the password in the address bar -->
     <form id="lgForm" novalidate onsubmit="return false">
       <div class="lg-row">
@@ -1225,7 +1250,8 @@ html[data-theme="dark"] #loginGate{
         <div class="ls-body" id="lsBody">
           <p class="ls-goal" id="lsGoal"></p>
           <div class="ls-apis" id="lsApis"></div>
-          <details class="ls-tasks" id="lsTasks"><summary id="lsTasksSum">Your tasks</summary><ol id="lsTaskList"></ol></details>
+          <details class="ls-tasks" id="lsTasks" open><summary id="lsTasksSum">Your tasks</summary><ol id="lsTaskList"></ol>
+            <p class="thint" id="lsTaskHint">Each task ticks itself when a run of your code passes and does what it asks.</p></details>
           <p class="ls-note" id="lsNote" hidden></p>
           <div class="ls-actions">
             <div class="ls-mode" role="tablist" aria-label="What the editor shows">
@@ -1235,7 +1261,6 @@ html[data-theme="dark"] #loginGate{
             <button class="ls-url" id="lsOpen" title="Show this page in the browser"></button>
             <span class="spacer"></span>
             <button class="btn ls-reset" id="lsReset" title="Throw away your version and start again">Start over</button>
-            <button class="btn ls-done" id="lsDoneBtn" aria-pressed="false">Mark done</button>
           </div>
         </div>
       </section>
@@ -1349,6 +1374,8 @@ html[data-theme="dark"] #loginGate{
   <input class="ls-search" id="lsSearch" type="search" autocomplete="off" spellcheck="false"
          aria-label="Find a lesson" placeholder="Find a lesson, element or API — e.g. checkbox, frameLocator">
   <div class="ls-list" id="lsList"></div>
+  <div class="ls-dfoot"><span>Ticks, progress and your code are saved in this browser.</span>
+    <button class="btn ls-reset" id="resetProgress" type="button" title="Clear every tick and completed lesson — your code is kept">Reset progress</button></div>
 </aside>
 
 <script>
@@ -4686,6 +4713,7 @@ function showSnapshot(rec, label){
   $('#snaptext').textContent = 'Snapshot after: ' + label;
   $('#snapbar').classList.add('on');
   steps.forEach(s => s.el.classList.toggle('sel', s === rec));
+  if (rec.el.classList.contains('fail')) taskEvent('trace-fail');
 }
 $('#golive').addEventListener('click', () => {
   pageEl.innerHTML = liveHTML;
@@ -5346,6 +5374,7 @@ async function run(){
   const counts = {passed: 0, failed: 0, skipped: 0};
 
   let src = $('#code').value;
+  runFor = {id: lesson && lesson.id, mode, src};    /* what the task checks judge once it finishes */
   try { src = stripTypes(src); }
   catch (e) { out('could not strip types, running the source as written: ' + e.message, 'info'); }
 
@@ -5535,6 +5564,324 @@ function finish(t0, c){
    Generated from the lesson sources; every solution here has
    been run through this page's own runner and passes. */
 const COURSE = {"modules": [{"n": 1, "title": "Web elements", "blurb": "One element family at a time, on its own practice page."}, {"n": 2, "title": "E2E: retail journeys", "blurb": "Real journeys through the Northwind store, page to page."}, {"n": 3, "title": "Test craft", "blurb": "Waiting, structure, data, types and debugging."}], "lessons": [{"id": "el-inputs", "mod": 1, "title": "Text inputs", "url": "/practice/inputs", "apis": ["fill()", "clear()", "getByLabel()", "getByPlaceholder()", "toHaveValue()", "toBeEditable()"], "goal": "Type into every kind of text field, read back what is there, and deal with fields that refuse input.", "tasks": ["Fill full name, email, password and age, then save — assert the summary line", "Show the password and assert its type became \"text\"", "Assert the voucher is read-only and the loyalty number is disabled", "Tick \"Add a gift message\" and prove the gift field is now enabled", "Type a bad postcode, check the error, then fix it", "Search your orders using only the placeholder"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest.describe('text inputs', () => {\n  test.beforeEach(async ({ page }) => {\n    await page.goto('https://demo.retail.com/practice/inputs');\n  });\n\n  test('fill, read back and clear', async ({ page }) => {\n    await page.getByLabel('Full name').fill('Ada Lovelace');\n    await page.getByLabel('Email address').fill('ada@northwind.test');\n    await page.getByLabel('Password').fill('secret123');\n    // 'Age' on its own also matches \"Add a gift message\" — exact stops that\n    await page.getByLabel('Age', { exact: true }).fill('36');\n\n    await expect(page.getByLabel('Password')).toHaveAttribute('type', 'password');\n    await page.getByTestId('pw-toggle').click();\n    await expect(page.getByLabel('Password')).toHaveAttribute('type', 'text');\n\n    await page.getByLabel('Delivery note').fill('Leave by the door');\n    await expect(page.getByTestId('note-count')).toHaveText('103');\n\n    await page.getByTestId('in-save').click();\n    await expect(page.getByTestId('in-result'))\n      .toHaveText('Saved: Ada Lovelace · ada@northwind.test · age 36');\n\n    await page.getByLabel('Full name').clear();\n    await expect(page.getByLabel('Full name')).toBeEmpty();\n  });\n\n  test('read-only and disabled fields', async ({ page }) => {\n    await expect(page.getByLabel('Welcome voucher')).toHaveValue('WELCOME5');\n    await expect(page.getByLabel('Welcome voucher')).not.toBeEditable();\n    await expect(page.getByLabel('Loyalty number')).toBeDisabled();\n\n    const gift = page.getByLabel('Gift message', { exact: true });\n    await expect(gift).toBeDisabled();\n    await page.getByLabel('Add a gift message').check();\n    await expect(gift).toBeEnabled();\n    await gift.fill('Happy birthday!');\n    await expect(gift).toHaveValue('Happy birthday!');\n  });\n\n  test('validation messages', async ({ page }) => {\n    await page.getByLabel('Postcode').fill('12345');\n    await expect(page.getByTestId('post-error')).toHaveText('Enter a valid UK postcode');\n\n    await page.getByLabel('Postcode').fill('BS1 4QA');\n    await expect(page.getByTestId('post-ok')).toBeVisible();\n    await expect(page.getByTestId('post-error')).toHaveCount(0);\n\n    await page.getByLabel('Mobile number').fill('07700 900123');\n    await expect(page.getByTestId('phone-ok')).toBeVisible();\n  });\n\n  test('a field with only a placeholder', async ({ page }) => {\n    await page.getByPlaceholder('Search your orders').fill('RT-10492');\n    await page.getByTestId('order-go').click();\n    await expect(page.getByTestId('order-result')).toHaveText('Searching for “RT-10492”');\n  });\n});\n", "num": "1.1", "expectFail": false}, {"id": "el-buttons", "mod": 1, "title": "Buttons", "url": "/practice/buttons", "apis": ["click()", "dblclick()", "click({ button: 'right' })", "toBeDisabled()", "toBeEnabled()"], "goal": "Click, double-click and right-click — and handle buttons that are disabled, busy, duplicated or icon-only.", "tasks": ["Click \"Add one to the basket\" twice and assert the count", "Double-click the favourite button", "Right-click the product and choose \"Copy link\" from its menu", "Prove \"Place order\" is disabled until the returns box is ticked", "Click \"Save address\" and wait for it to finish — no sleeps", "Click the \"Add\" button for the Wool Beanie only", "Toggle the heart icon button and check aria-pressed"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest.describe('buttons', () => {\n  test.beforeEach(async ({ page }) => {\n    await page.goto('https://demo.retail.com/practice/buttons');\n  });\n\n  test('click, double-click and right-click', async ({ page }) => {\n    const add = page.getByRole('button', { name: 'Add one to the basket' });\n    await add.click();\n    await add.click();\n    await expect(page.getByTestId('add-count')).toHaveText('Basket: 2 items');\n\n    await page.getByTestId('fav-btn').dblclick();\n    await expect(page.getByTestId('fav-result')).toHaveText('♥ Favourited');\n\n    await page.getByTestId('ctx-target').click({ button: 'right' });\n    await page.getByRole('menuitem', { name: 'Copy link' }).click();\n    await expect(page.getByTestId('ctx-result')).toHaveText('You chose: Copy link');\n  });\n\n  test('disabled until something else happens', async ({ page }) => {\n    const place = page.getByRole('button', { name: 'Place order' });\n    await expect(place).toBeDisabled();\n    await page.getByLabel('I have read the returns policy').check();\n    await expect(place).toBeEnabled();\n    await place.click();\n    await expect(page.getByTestId('place-result')).toHaveText('Order placed');\n  });\n\n  test('busy buttons, twins and icons', async ({ page }) => {\n    await page.getByRole('button', { name: 'Save address' }).click();\n    await expect(page.getByTestId('save-result')).toHaveText('Address saved');\n\n    // two buttons called \"Add\" — scope to the row before choosing\n    await page.getByTestId('twin-beanie').getByRole('button', { name: 'Add' }).click();\n    await expect(page.getByTestId('twin-result')).toHaveText('Added Wool Beanie');\n\n    // no text, so the name comes from aria-label\n    const heart = page.getByRole('button', { name: 'Save to wishlist' });\n    await heart.click();\n    await expect(heart).toHaveAttribute('aria-pressed', 'true');\n  });\n});\n", "num": "1.2", "expectFail": false}, {"id": "el-links", "mod": 1, "title": "Links", "url": "/practice/links", "apis": ["getByRole('link')", "getAttribute()", "toHaveAttribute()", "toHaveURL()", "evaluateAll()"], "goal": "Follow links that navigate, check the ones you should not follow, and hunt down broken ones.", "tasks": ["Assert the size guide link has an href and a download attribute", "Assert the returns link opens in a new tab (target=\"_blank\")", "Read the email link's href and compare it", "In the orders table, check the \"View details\" link of RT-10476 only", "Click \"Browse bags\" and assert where you landed", "Visit every footer link and collect the ones that return 404"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('reading and following links', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/links');\n\n  // check a link without following it\n  const guide = page.getByRole('link', { name: 'Download the size guide' });\n  await expect(guide).toHaveAttribute('href', '/files/size-guide.pdf');\n  await expect(guide).toHaveAttribute('download', '');\n  await expect(page.getByRole('link', { name: 'Returns policy (new tab)' }))\n    .toHaveAttribute('target', '_blank');\n  const mail = await page.getByRole('link', { name: 'Email the help team' }).getAttribute('href');\n  expect(mail).toBe('mailto:help@northwind.test');\n\n  // every row says \"View details\" — pick the row first\n  const row = page.getByRole('row', { name: /RT-10476/ });\n  await expect(row.getByRole('link', { name: 'View details' }))\n    .toHaveAttribute('href', '/orders?find=RT-10476');\n\n  await page.getByRole('link', { name: 'Browse bags' }).click();\n  await expect(page).toHaveURL(/category=Bags/);\n  await expect(page.getByTestId('page-title')).toHaveText('Bags');\n});\n\ntest('finding the broken links', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/links');\n  const hrefs = await page.getByTestId('footer-links').getByRole('link')\n    .evaluateAll(links => links.map(a => a.getAttribute('href')));\n\n  const broken = [];\n  for (const href of hrefs) {\n    const response = await page.goto('https://demo.retail.com' + href);\n    if (response.status() === 404) broken.push(href);\n  }\n  console.log('broken links: ' + broken.join(', '));\n  expect(broken).toEqual(['/careers', '/press']);\n});\n", "num": "1.3", "expectFail": false}, {"id": "el-checkboxes", "mod": 1, "title": "Checkboxes", "url": "/practice/checkboxes", "apis": ["check()", "uncheck()", "toBeChecked()", "getByRole('checkbox')", "getByRole('group')"], "goal": "Tick, untick and read the state of single boxes, groups, a select-all, and ARIA checkboxes built from divs.", "tasks": ["Check and uncheck gift wrap, asserting the state each time", "Inside the Interests group, tick Bags and Outerwear", "Use \"Select all\", untick one item, then remove the selected rows", "Assert the required box is checked and disabled", "Toggle the two div-based checkboxes — one by click, one with Space"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('checkboxes of every kind', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/checkboxes');\n\n  const wrap = page.getByLabel('Gift wrap this order (+$3.00)');\n  await wrap.check();\n  await expect(wrap).toBeChecked();\n  await expect(page.getByTestId('wrap-result')).toHaveText('Gift wrap: on');\n  await wrap.uncheck();\n  await expect(wrap).not.toBeChecked();\n\n  // scope to the group, then choose by label\n  const interests = page.getByRole('group', { name: 'Interests' });\n  await interests.getByLabel('Bags').check();\n  await interests.getByLabel('Outerwear').check();\n  await expect(page.getByTestId('interest-result')).toHaveText('Selected: Bags, Outerwear');\n\n  await page.getByLabel('Select all items').check();\n  await expect(page.getByTestId('all-result')).toHaveText('3 of 3 selected');\n  await page.getByLabel('Rain Shell').uncheck();\n  await expect(page.getByTestId('all-result')).toHaveText('2 of 3 selected');\n  await page.getByTestId('remove-selected').click();\n  await expect(page.getByTestId('all-result')).toHaveText('0 of 1 selected');\n\n  const required = page.getByLabel('Order confirmation emails (required)');\n  await expect(required).toBeChecked();\n  await expect(required).toBeDisabled();\n\n  // no <input> here: role=\"checkbox\" with aria-checked\n  const eco = page.getByRole('checkbox', { name: 'Eco packaging' });\n  await eco.check();\n  await expect(eco).toBeChecked();\n  await page.getByRole('checkbox', { name: 'Carbon-neutral delivery' }).press('Space');\n  await expect(page.getByTestId('aria-result'))\n    .toHaveText('Eco options: Eco packaging, Carbon-neutral delivery');\n});\n", "num": "1.4", "expectFail": false}, {"id": "el-radios", "mod": 1, "title": "Radio buttons", "url": "/practice/radios", "apis": ["check()", "toBeChecked()", "getByRole('radio')", "getByRole('group')"], "goal": "Choose within a group, spot the default and the disabled option, and tell two groups with the same answers apart.", "tasks": ["Assert Standard is the default, then choose Express", "Assert Cash on delivery is disabled and choose PayPal", "Pick the yearly plan by clicking its text", "Answer \"Yes\" to the gift receipt question only"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('radio buttons', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/radios');\n\n  await expect(page.getByLabel('Standard — free')).toBeChecked();\n  await page.getByLabel('Express — $9.00').check();\n  await expect(page.getByLabel('Standard — free')).not.toBeChecked();\n  await expect(page.getByTestId('speed-result')).toHaveText('Delivery: Express');\n\n  await expect(page.getByLabel('Cash on delivery (unavailable)')).toBeDisabled();\n  await page.getByRole('radio', { name: 'PayPal' }).check();\n  await expect(page.getByRole('radio', { name: 'PayPal' })).toBeChecked();\n\n  // the whole card is the label, so clicking its text chooses it\n  await page.getByText('Plus, yearly').click();\n  await expect(page.getByTestId('plan-result')).toHaveText('Plan: Plus, yearly');\n\n  // \"Yes\" appears twice — scope to the question first\n  await page.getByRole('group', { name: 'Include a gift receipt?' }).getByLabel('Yes').check();\n  await expect(page.getByTestId('twins-result')).toHaveText('Gift receipt: yes · Neighbour: no');\n});\n", "num": "1.5", "expectFail": false}, {"id": "el-dropdowns", "mod": 1, "title": "Dropdowns", "url": "/practice/dropdowns", "apis": ["selectOption()", "selectOption({ label })", "selectOption({ index })", "toHaveValues()"], "goal": "Choose from native selects by value, label and index — several at once, grouped, and one that fills another.", "tasks": ["Select Ireland by value, Germany by label, and India by index", "Choose two sizes from the multi-select and assert both", "Pick Trail Runner from the grouped list", "Choose India, then prove the store list filled in and choose Bengaluru", "Read the currency that was already selected"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('native dropdowns', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/dropdowns');\n  const country = page.getByLabel('Delivery country');\n\n  await country.selectOption('IE');                     // by value\n  await expect(page.getByTestId('country-result')).toHaveText('Country: Ireland (IE)');\n  await country.selectOption({ label: 'Germany' });     // by visible text\n  await expect(country).toHaveValue('DE');\n  await country.selectOption({ index: 4 });             // by position — 0 is the placeholder\n  await expect(page.getByTestId('country-result')).toHaveText('Country: India (IN)');\n\n  await page.getByLabel('Sizes you wear').selectOption(['S', 'L']);\n  await expect(page.getByLabel('Sizes you wear')).toHaveValues(['S', 'L']);\n\n  // 'Product' alone also matches the header's \"Search products\" — so exact\n  const product = page.getByLabel('Product', { exact: true });\n  await product.selectOption('Trail Runner');\n  await expect(product).toHaveValue('Trail Runner');\n\n  // one dropdown fills the next\n  const store = page.getByLabel('Nearest store');\n  await expect(store).toBeDisabled();\n  await page.getByLabel('Country', { exact: true }).selectOption('IN');\n  await expect(store).toBeEnabled();\n  await expect(store.locator('option')).toHaveText(['Choose a store…', 'Mumbai', 'Bengaluru', 'Delhi']);\n  await store.selectOption('Bengaluru');\n  await expect(page.getByTestId('city-result')).toHaveText('Store: Bengaluru');\n\n  await expect(page.getByLabel('Currency')).toHaveValue('USD');\n  await expect(page.getByLabel('Currency').locator('option:checked')).toHaveText('US dollar');\n});\n", "num": "1.6", "expectFail": false}, {"id": "el-autocomplete", "mod": 1, "title": "Custom dropdowns & auto-suggest", "url": "/practice/autocomplete", "apis": ["getByRole('listbox')", "getByRole('option')", "press('ArrowDown')", "toBeHidden()"], "goal": "Drive dropdowns that are not <select> elements — open, then pick — and type-ahead suggestion lists.", "tasks": ["Open the sort menu and choose \"Price: low to high\"", "Assert the listbox closed again", "Type \"ra\" and assert two suggestions appear, then pick Rain Shell", "Type \"ind\" in Country and choose the second match with the arrow keys"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('custom dropdowns and suggestions', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/autocomplete');\n\n  // not a <select>: selectOption will not work — open it, then click\n  await page.getByTestId('sort-trigger').click();\n  const sort = page.getByRole('listbox', { name: 'Sort options' });\n  await expect(sort).toBeVisible();\n  await page.getByRole('option', { name: 'Price: low to high' }).click();\n  await expect(page.getByTestId('sort-result')).toHaveText('Sorted by: Price: low to high');\n  await expect(sort).toBeHidden();\n\n  await page.getByLabel('Find a product').fill('ra');\n  await expect(page.getByTestId('suggestions').getByRole('option')).toHaveCount(2);\n  await page.getByRole('option', { name: 'Rain Shell' }).click();\n  await expect(page.getByTestId('pick-result')).toHaveText('You picked: Rain Shell');\n\n  // or drive it with the keyboard\n  const country = page.getByLabel('Country');\n  await country.fill('ind');\n  await country.press('ArrowDown');\n  await country.press('ArrowDown');\n  await country.press('Enter');\n  await expect(page.getByTestId('ctry-result')).toHaveText('Country: Indonesia');\n});\n", "num": "1.7", "expectFail": false}, {"id": "el-dialogs", "mod": 1, "title": "Alerts & dialogs", "url": "/practice/dialogs", "apis": ["page.on('dialog')", "dialog.accept()", "dialog.message()", "getByRole('dialog')"], "goal": "Answer alert, confirm and prompt dialogs — including a late one — and tell them apart from in-page modals.", "tasks": ["Register a dialog handler, then accept an alert and a confirm", "Answer the prompt with a wishlist name", "Catch the dialog that arrives a second and a half late", "Fill and apply the discount modal (it is ordinary HTML)", "Dismiss the cookie banner", "In a second test with no handler, prove the confirm is dismissed"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('answering dialogs', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/dialogs');\n\n  // register before the click that opens a dialog\n  page.on('dialog', async dialog => {\n    console.log(`${dialog.type()}: ${dialog.message()}`);\n    if (dialog.type() === 'prompt') await dialog.accept('Winter kit');\n    else await dialog.accept();\n  });\n\n  await page.getByTestId('btn-alert').click();\n  await expect(page.getByTestId('dlg-result')).toHaveText('Alert closed');\n  await page.getByTestId('btn-confirm').click();\n  await expect(page.getByTestId('dlg-result')).toHaveText('Removed');\n  await page.getByTestId('btn-prompt').click();\n  await expect(page.getByTestId('dlg-result')).toHaveText('Wishlist: Winter kit');\n\n  await page.getByTestId('btn-late').click();\n  await expect(page.getByTestId('late-result')).toHaveText('Basket reserved');\n\n  // an HTML modal is part of the page — no handler needed\n  await page.getByTestId('open-modal').click();\n  await page.getByRole('dialog', { name: 'Discount code' }).getByLabel('Code').fill('save10');\n  await page.getByTestId('md-apply').click();\n  await expect(page.getByTestId('modal-result')).toHaveText('Code applied: SAVE10');\n\n  await page.getByTestId('cookie-accept').click();\n  await expect(page.getByTestId('cookie-banner')).toHaveCount(0);\n});\n\ntest('with nobody listening, dialogs are dismissed', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/dialogs');\n  await page.getByTestId('btn-confirm').click();\n  await expect(page.getByTestId('dlg-result')).toHaveText('Kept');\n});\n", "num": "1.8", "expectFail": false}, {"id": "el-frames", "mod": 1, "title": "Frames", "url": "/practice/frames", "apis": ["frameLocator()", "frameLocator().frameLocator()", "locator()"], "goal": "Reach inside frames — one level, two levels — and see why page.locator() alone never can.", "tasks": ["Prove page.getByLabel(\"Card number\") finds nothing", "Pay inside the payment frame with frameLocator", "Send a chat message, then attach a file in the frame inside it", "Apply one coupon on the page and another inside the partner frame — both use id=\"coupon\""], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('working with frames', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/frames');\n\n  // page-level locators stop at a frame's edge\n  await expect(page.getByLabel('Card number')).toHaveCount(0);\n\n  const pay = page.frameLocator('[data-testid=pay-frame]');\n  await pay.getByLabel('Card number').fill('4242 4242 4242 4242');\n  await pay.getByLabel('Expiry').fill('12/28');\n  await pay.getByLabel('Security code').fill('123');\n  await pay.getByRole('button', { name: 'Pay $42.00' }).click();\n  await expect(pay.getByTestId('pf-result')).toHaveText('Payment authorised');\n\n  // one frameLocator per level of nesting\n  const chat = page.frameLocator('[data-testid=chat-frame]');\n  await chat.getByLabel('Message').fill('Where is my parcel?');\n  await chat.getByTestId('chat-send').click();\n  await expect(chat.getByTestId('chat-result')).toHaveText('You: Where is my parcel?');\n\n  const attach = chat.frameLocator('[data-testid=attach-frame]');\n  await attach.getByLabel('File name').fill('receipt.pdf');\n  await attach.getByTestId('attach-btn').click();\n  await expect(attach.getByTestId('attach-result')).toHaveText('Attached: receipt.pdf');\n\n  // the same id in two documents — where you start decides which you get\n  await page.locator('#coupon').fill('shop5');\n  await page.getByTestId('coupon-apply').click();\n  await expect(page.getByTestId('coupon-result')).toHaveText('Shop coupon: SHOP5');\n\n  const partner = page.frameLocator('[data-testid=partner-frame]');\n  await partner.locator('#coupon').fill('partner10');\n  await partner.getByTestId('coupon-apply').click();\n  await expect(partner.getByTestId('coupon-result')).toHaveText('Partner coupon: PARTNER10');\n});\n", "num": "1.9", "expectFail": false}, {"id": "el-shadow", "mod": 1, "title": "Shadow DOM", "url": "/practice/shadow", "apis": ["getByTestId()", "getByRole('button')", "toHaveCount(0)"], "goal": "Work inside open shadow roots — even nested ones — and learn where locators cannot go.", "tasks": ["Redeem 500 points in the loyalty widget and check the new balance", "Rate the product 4 out of 5 — the button is two shadow roots deep", "Prove XPath cannot see the Redeem button", "Prove the closed root's text is unreachable, but its host is not"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('shadow DOM', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/shadow');\n\n  // open shadow roots: locators pierce them without being asked\n  await expect(page.getByTestId('points')).toHaveText('Points: 1240');\n  await page.getByRole('button', { name: 'Redeem 500 points' }).click();\n  await expect(page.getByTestId('points')).toHaveText('Points: 740');\n  await expect(page.getByTestId('voucher')).toHaveText('Voucher: NW-500');\n\n  // a shadow root inside a shadow root is no different\n  await page.getByRole('button', { name: 'Rate 4 out of 5' }).click();\n  await expect(page.getByTestId('rating-result')).toHaveText('You rated it 4 out of 5');\n\n  // XPath cannot cross a shadow boundary\n  await expect(page.locator('//button[text()=\"Redeem 500 points\"]')).toHaveCount(0);\n\n  // a closed root is sealed: the host is reachable, its contents are not\n  await expect(page.getByTestId('closed-host')).toBeVisible();\n  await expect(page.getByText('Partner exclusive')).toHaveCount(0);\n});\n", "num": "1.10", "expectFail": false}, {"id": "el-tables", "mod": 1, "title": "Web tables", "url": "/practice/tables", "apis": ["getByRole('row')", "getByRole('cell')", "nth()", "allTextContents()", "toHaveCount()"], "goal": "Read a cell, find the row that holds a value, total a column, and check a table after it changes.", "tasks": ["Count the rows in the stock table", "Find the Rain Shell row and read its price", "Add up the Stock column", "Add two rows to the basket table, then remove one", "Archive two orders using their row checkboxes", "Sort by price and read the column back in order"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest.describe('web tables', () => {\n  test.beforeEach(async ({ page }) => {\n    await page.goto('https://demo.retail.com/practice/tables');\n  });\n\n  test('reading a table', async ({ page }) => {\n    const stock = page.getByTestId('stock-table');\n    await expect(stock.locator('tbody tr')).toHaveCount(6);\n\n    // find the row by what it holds, then read a cell from it\n    const shell = stock.getByRole('row', { name: /Rain Shell/ });\n    await expect(shell.getByRole('cell').nth(3)).toHaveText('$165.00');\n\n    // every value in one column\n    const counts = await stock.locator('tbody td:nth-child(3)').allTextContents();\n    const total = counts.reduce((sum, n) => sum + Number(n), 0);\n    console.log('stock on hand: ' + total);\n    expect(total).toBe(60);\n  });\n\n  test('rows that change', async ({ page }) => {\n    await page.getByLabel('Product name').fill('Wool Beanie');\n    await page.getByLabel('Quantity').fill('2');\n    await page.getByTestId('row-add').click();\n    await page.getByLabel('Product name').fill('Linen Scarf');\n    await page.getByTestId('row-add').click();\n\n    const basket = page.getByTestId('basket-table');\n    await expect(basket.locator('tbody tr')).toHaveCount(2);\n    await expect(page.getByTestId('basket-total')).toHaveText('Total items: 3');\n    await basket.getByRole('button', { name: 'Remove Wool Beanie' }).click();\n    await expect(page.getByTestId('basket-total')).toHaveText('Total items: 1');\n\n    const archive = page.getByTestId('archive-table');\n    await archive.getByLabel('Select RT-10402').check();\n    await archive.getByLabel('Select RT-10350').check();\n    await page.getByTestId('archive-btn').click();\n    await expect(page.getByTestId('archive-result')).toHaveText('2 orders');\n  });\n\n  test('sorting a column', async ({ page }) => {\n    const table = page.getByTestId('sort-table');\n    await table.getByRole('columnheader', { name: 'Price' }).click();\n    await expect(table.getByRole('columnheader', { name: 'Price' })).toHaveAttribute('aria-sort', 'ascending');\n    await expect(table.locator('tbody td:nth-child(2)'))\n      .toHaveText(['$26.00', '$42.00', '$115.00', '$165.00']);\n  });\n});\n", "num": "1.11", "expectFail": false}, {"id": "el-mouse", "mod": 1, "title": "Mouse actions", "url": "/practice/mouse", "apis": ["hover()", "dragTo()", "getByRole('menuitem')", "getByRole('tooltip')"], "goal": "Handle anything that depends on where the pointer is: hover menus, tooltips, hover-only buttons, drag and drop.", "tasks": ["Hover the Shop menu, assert it opened, then hover away and assert it closed", "Choose Footwear from the hover menu", "Hover the returns info and read the tooltip", "Reveal and click the Quick view button", "Drag two products onto the wishlist"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('mouse actions', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/mouse');\n\n  const categories = page.getByRole('menu', { name: 'Shop categories' });\n  await expect(categories).toBeHidden();\n  await page.getByTestId('shop-menu').hover();\n  await expect(categories).toBeVisible();\n  // moving the pointer elsewhere closes it again\n  await page.getByTestId('deals').hover();\n  await expect(categories).toBeHidden();\n\n  await page.getByTestId('shop-menu').hover();\n  await page.getByRole('menuitem', { name: 'Footwear' }).click();\n  await expect(page.getByTestId('menu-result')).toHaveText('Going to Footwear');\n\n  await page.getByTestId('returns-info').hover();\n  await expect(page.getByRole('tooltip')).toHaveText('30 days, and we pay the postage');\n\n  // hidden until hovered — clicking it cold would time out\n  await page.getByTestId('reveal-card').hover();\n  await page.getByTestId('quick-view').click();\n  await expect(page.getByTestId('quick-result')).toContainText('Leather Loafer');\n\n  await page.getByTestId('drag-0').dragTo(page.getByTestId('wishlist-zone'));\n  await page.getByTestId('drag-2').dragTo(page.getByTestId('wishlist-zone'));\n  await expect(page.getByTestId('wish-result'))\n    .toHaveText('Wishlist: 2 items — Canvas Weekender, Linen Scarf');\n});\n", "num": "1.12", "expectFail": false}, {"id": "el-keyboard", "mod": 1, "title": "Keyboard", "url": "/practice/keyboard", "apis": ["press('Enter')", "keyboard.press('Control+K')", "press('Tab')", "toBeFocused()"], "goal": "Press keys and combinations, use a page-wide shortcut, move focus with Tab, submit with Enter and close with Escape.", "tasks": ["Press Enter, then Shift+A, in the key tester", "Press Control+K and assert the search field has focus", "Focus First name, Tab twice, and assert Email has focus", "Apply SAVE10 with Enter — there is no button", "Open the quick view and close it with Escape"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('keyboard', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/keyboard');\n\n  const box = page.getByRole('textbox', { name: 'Key tester' });\n  await box.press('Enter');\n  await expect(page.getByTestId('key-result')).toHaveText('Last key: Enter');\n  await box.press('Shift+A');\n  await expect(page.getByTestId('key-result')).toHaveText('Last key: Shift+A');\n\n  // a page-wide shortcut\n  await page.keyboard.press('Control+K');\n  await expect(page.getByLabel('Search the lab')).toBeFocused();\n  await expect(page.getByTestId('shortcut-result')).toHaveText('Search opened');\n\n  // Tab moves focus in document order\n  await page.getByLabel('First name').focus();\n  await page.keyboard.press('Tab');\n  await expect(page.getByLabel('Last name')).toBeFocused();\n  await page.keyboard.press('Tab');\n  await expect(page.getByLabel('Email', { exact: true })).toBeFocused();\n\n  const promo = page.getByLabel('Promotion code');\n  await promo.fill('save10');\n  await promo.press('Enter');\n  await expect(page.getByTestId('promo-result')).toHaveText('Code SAVE10 applied');\n\n  await page.getByTestId('kb-open').click();\n  await expect(page.getByRole('dialog', { name: 'Quick view' })).toBeVisible();\n  await page.keyboard.press('Escape');\n  await expect(page.getByRole('dialog', { name: 'Quick view' })).toHaveCount(0);\n});\n", "num": "1.13", "expectFail": false}, {"id": "el-files", "mod": 1, "title": "Upload & download", "url": "/practice/files", "apis": ["setInputFiles()", "waitForEvent('download')", "suggestedFilename()", "Promise.all()"], "goal": "Upload one file or several without ever opening a picker, and catch downloads as they happen.", "tasks": ["Upload a receipt and check its name", "Upload three photos at once", "Upload a PNG to the drop zone and see it refused, then a PDF", "Download the invoice and check its file name"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('uploads and downloads', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/files');\n\n  await page.getByLabel('Upload a receipt').setInputFiles('receipt-0412.pdf');\n  await expect(page.getByTestId('one-result')).toHaveText('Uploaded: receipt-0412.pdf');\n\n  await page.getByLabel('Product photos').setInputFiles(['front.jpg', 'back.jpg', 'detail.jpg']);\n  await expect(page.getByTestId('photo')).toHaveCount(3);\n  await expect(page.getByTestId('many-result')).toHaveText('3 photos');\n\n  // the drop zone is decoration — the input inside it takes the file\n  const zone = page.getByLabel('Drag a returns label here, or browse');\n  await zone.setInputFiles('label.png');\n  await expect(page.getByTestId('zone-result')).toHaveText('Returns labels must be PDFs');\n  await zone.setInputFiles('label.pdf');\n  await expect(page.getByTestId('zone-result')).toHaveText('Label uploaded: label.pdf');\n\n  // start waiting before the click that causes the download\n  const [download] = await Promise.all([\n    page.waitForEvent('download'),\n    page.getByRole('button', { name: 'Download invoice' }).click()\n  ]);\n  expect(download.suggestedFilename()).toBe('invoice-RT-10492.pdf');\n});\n", "num": "1.14", "expectFail": false}, {"id": "el-pickers", "mod": 1, "title": "Dates, sliders & pickers", "url": "/practice/pickers", "apis": ["fill('YYYY-MM-DD')", "fill() on range", "getByRole('button', { name })", "toHaveValue()"], "goal": "Fill native date, time and colour inputs directly, and click your way through a custom calendar.", "tasks": ["Book delivery for 3 October 2026 at 09:30", "Open the calendar, check a past day is disabled, and move to October", "Choose 3 October in the calendar and check the field", "Set the budget slider to 250 and step the quantity up to 3", "Pick an engraving colour"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('dates, sliders and pickers', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/pickers');\n\n  // native inputs always take ISO values, whatever the screen shows\n  await page.getByLabel('Delivery date').fill('2026-10-03');\n  await page.getByLabel('Delivery slot').fill('09:30');\n  await expect(page.getByTestId('native-result')).toHaveText('Delivery on 2026-10-03 at 09:30');\n  await page.getByLabel('Card expiry').fill('2028-12');\n  await expect(page.getByLabel('Card expiry')).toHaveValue('2028-12');\n\n  // a custom calendar is clicked through like a person would\n  await page.getByRole('button', { name: 'Open calendar' }).click();\n  await expect(page.getByTestId('cal-month')).toHaveText('September 2026');\n  await expect(page.getByRole('button', { name: '10 September 2026' })).toBeDisabled();\n  await page.getByRole('button', { name: 'Next month' }).click();\n  await expect(page.getByTestId('cal-month')).toHaveText('October 2026');\n  await page.getByRole('button', { name: '3 October 2026' }).click();\n  await expect(page.getByLabel('Collection date')).toHaveValue('2026-10-03');\n\n  await page.getByLabel('Budget').fill('250');\n  await expect(page.getByTestId('budget-out')).toHaveText('$250');\n  await page.getByRole('button', { name: 'More' }).click();\n  await page.getByRole('button', { name: 'More' }).click();\n  await expect(page.getByLabel('Quantity')).toHaveValue('3');\n\n  await page.getByLabel('Engraving colour').fill('#d44a37');\n  await expect(page.getByTestId('colour-result')).toHaveText('Colour: #d44a37');\n});\n", "num": "1.15", "expectFail": false}, {"id": "el-dynamic", "mod": 1, "title": "Waits & dynamic content", "url": "/practice/dynamic", "apis": ["toBeVisible()", "toBeHidden()", "toBeEnabled()", "{ timeout }"], "goal": "Test things that arrive late, leave early or change on their own — without a single waitForTimeout.", "tasks": ["Load recommendations: see the spinner, then three items", "Wait for the late stock message", "Close the sale banner and assert it went away", "Wait for the Resend button to wake up, then click it", "Start tracking and wait for \"Shipped\"", "In a second test, wait for the seven-second report with a longer timeout"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('waiting without sleeping', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/dynamic');\n\n  await page.getByTestId('load-recs').click();\n  await expect(page.getByTestId('recs-loading')).toBeVisible();\n  await expect(page.getByTestId('rec-item')).toHaveCount(3);\n  await expect(page.getByTestId('recs-loading')).toBeHidden();\n\n  await page.getByTestId('check-stock').click();\n  await expect(page.getByTestId('stock-msg')).toHaveText('In stock at Bristol — 4 left');\n\n  await page.getByRole('button', { name: 'Close banner' }).click();\n  await expect(page.getByTestId('sale-banner')).toBeHidden();\n\n  const resend = page.getByTestId('resend');\n  await expect(resend).toBeEnabled();\n  await resend.click();\n  await expect(page.getByTestId('resend-result')).toHaveText('Code resent');\n\n  await page.getByTestId('track').click();\n  await expect(page.getByTestId('order-status')).toHaveText('Status: Shipped');\n});\n\ntest('slower than the default timeout', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/dynamic');\n  await page.getByTestId('run-report').click();\n  // seven seconds: say so, or this fails at five\n  await expect(page.getByTestId('report-done')).toBeVisible({ timeout: 10000 });\n});\n", "num": "1.16", "expectFail": false}, {"id": "el-widgets", "mod": 1, "title": "Tabs, accordions & overlays", "url": "/practice/widgets", "apis": ["getByRole('tab')", "toHaveAttribute()", "getByRole('dialog')", "getByRole('progressbar')"], "goal": "Read state from ARIA attributes on tabs, accordions and progress bars, and catch overlays that come and go.", "tasks": ["Open the Care tab and check aria-selected and the panel text", "Expand \"Do you ship abroad?\" and check aria-expanded", "Open the size guide, read a row, and close it", "Catch the toast, then wait for it to leave", "Start the upload and wait for the bar to reach 100"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('tabs, accordions and overlays', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/widgets');\n\n  await page.getByRole('tab', { name: 'Care' }).click();\n  await expect(page.getByRole('tab', { name: 'Care' })).toHaveAttribute('aria-selected', 'true');\n  await expect(page.getByTestId('wg-panel')).toHaveText('Sponge clean. Re-wax once a season.');\n\n  const q = page.getByRole('button', { name: 'Do you ship abroad?' });\n  await expect(q).toHaveAttribute('aria-expanded', 'false');\n  await q.click();\n  await expect(q).toHaveAttribute('aria-expanded', 'true');\n  await expect(page.getByText('To 24 countries')).toBeVisible();\n\n  await page.getByTestId('size-guide').click();\n  const guide = page.getByRole('dialog', { name: 'Size guide' });\n  await expect(guide.getByRole('row', { name: /^M/ })).toContainText('95–101 cm');\n  await guide.getByRole('button', { name: 'Close' }).click();\n  await expect(guide).toHaveCount(0);\n\n  // catch the toast, then watch it leave\n  await page.getByTestId('save-later').click();\n  await expect(page.getByTestId('toast')).toHaveText('Saved for later');\n  await expect(page.getByTestId('toast')).toBeHidden();\n\n  await page.getByTestId('start-upload').click();\n  await expect(page.getByRole('progressbar', { name: 'Upload' })).toHaveAttribute('aria-valuenow', '100');\n  await expect(page.getByTestId('upload-result')).toHaveText('Upload complete');\n});\n", "num": "1.17", "expectFail": false}, {"id": "el-scroll", "mod": 1, "title": "Scrolling & lazy loading", "url": "/practice/scroll", "apis": ["scrollIntoViewIfNeeded()", "toBeInViewport()", "last()"], "goal": "Drive a list that loads more as you reach the bottom, and check what is — and is not — on screen.", "tasks": ["Assert the feed starts with 10 items", "Scroll to the last item twice, waiting for 20 and then 30", "Assert the end-of-page message is off screen, then scroll to it", "Use \"Back to top\" and assert the message left the viewport"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('scrolling and lazy loading', async ({ page }) => {\n  await page.goto('https://demo.retail.com/practice/scroll');\n\n  const items = page.getByTestId('feed-item');\n  await expect(items).toHaveCount(10);\n  // reaching the end of the list is what loads more\n  await items.last().scrollIntoViewIfNeeded();\n  await expect(items).toHaveCount(20);\n  await items.last().scrollIntoViewIfNeeded();\n  await expect(items).toHaveCount(30);\n  await expect(page.getByTestId('feed-count')).toHaveText('Showing 30 of 40');\n\n  const end = page.getByTestId('page-end');\n  await expect(end).not.toBeInViewport();\n  await end.scrollIntoViewIfNeeded();\n  await expect(end).toBeInViewport();\n\n  await page.getByTestId('back-to-top').click();\n  await expect(end).not.toBeInViewport();\n});\n", "num": "1.18", "expectFail": false}, {"id": "e2e-signin", "mod": 2, "title": "Sign in", "url": "/login", "apis": ["getByLabel()", "fill()", "toHaveText()", "toHaveCount(0)"], "goal": "Sign in with good and bad credentials. The check takes 800ms, so assertions have to wait — and they do.", "tasks": ["Sign in as ada@northwind.test / secret123", "Assert the welcome heading and the success message", "In a second test, use a wrong password and assert the error", "Prove the welcome heading never appeared"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('a shopper signs in', async ({ page }) => {\n  await page.goto('https://demo.retail.com/login');\n\n  await page.getByLabel('Email address').fill('ada@northwind.test');\n  await page.getByLabel('Password').fill('secret123');\n  await page.getByLabel('Keep me signed in on this device').check();\n  await page.getByTestId('signin-button').click();\n\n  // the check takes 800ms — the assertion waits for it\n  await expect(page.getByTestId('welcome')).toHaveText('Welcome back, Ada');\n  await expect(page.getByTestId('flash')).toHaveText('Signed in successfully');\n  await expect(page.getByRole('button', { name: 'Sign out' })).toBeVisible();\n});\n\ntest('a wrong password is rejected', async ({ page }) => {\n  await page.goto('https://demo.retail.com/login');\n\n  await page.getByLabel('Email address').fill('ada@northwind.test');\n  await page.getByLabel('Password').fill('nope');\n  await page.getByTestId('signin-button').click();\n\n  await expect(page.getByTestId('flash')).toHaveText('Those credentials are not valid.');\n  await expect(page.getByTestId('welcome')).toHaveCount(0);\n});\n", "num": "2.1", "expectFail": false}, {"id": "e2e-register", "mod": 2, "title": "Create an account", "url": "/register", "apis": ["toBeDisabled()", "selectOption()", "check()", "locator('.err')"], "goal": "Register a new customer: a submit button that waits for the terms, and validation that reports each field.", "tasks": ["Get to the form from the sign-in page", "Prove \"Create account\" is disabled until the terms are accepted", "Submit an empty form and count the four errors", "Fill every field — including the date, dropdown and radio — and submit"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest.describe('create an account', () => {\n  test.beforeEach(async ({ page }) => {\n    await page.goto('https://demo.retail.com/login');\n    await page.getByRole('link', { name: 'Create an account' }).click();\n    await expect(page).toHaveURL(/\\/register/);\n  });\n\n  test('the button waits for the terms', async ({ page }) => {\n    const create = page.getByRole('button', { name: 'Create account' });\n    await expect(create).toBeDisabled();\n    await page.getByLabel('I accept the terms of sale').check();\n    await expect(create).toBeEnabled();\n  });\n\n  test('empty fields are reported one by one', async ({ page }) => {\n    await page.getByLabel('I accept the terms of sale').check();\n    await page.getByRole('button', { name: 'Create account' }).click();\n    await expect(page.getByTestId('flash')).toHaveText('4 fields need your attention.');\n    await expect(page.getByTestId('err-first')).toHaveText('First name is required');\n    await expect(page.locator('.err')).toHaveCount(4);\n  });\n\n  test('a complete form is accepted', async ({ page }) => {\n    await page.getByLabel('First name').fill('Ada');\n    await page.getByLabel('Last name').fill('Whitfield');\n    await page.getByLabel('Email address').fill('ada@northwind.test');\n    await page.getByLabel('Mobile number').fill('+44 7700 900123');\n    await page.getByLabel('Password', { exact: true }).fill('secret123');\n    await page.getByLabel('Confirm password').fill('secret123');\n    await page.getByLabel('Date of birth').fill('1990-12-10');\n    await page.getByLabel('How did you hear about us?').selectOption('Search engine');\n    await page.getByLabel('Bristol').check();\n    await page.getByLabel('Email me new arrivals and offers').uncheck();\n    await page.getByLabel('I accept the terms of sale').check();\n    await page.getByRole('button', { name: 'Create account' }).click();\n    await expect(page.getByTestId('flash')).toHaveText('Account created. You can sign in now.');\n  });\n});\n", "num": "2.2", "expectFail": false}, {"id": "e2e-browse", "mod": 2, "title": "Search, filter and sort", "url": "/products", "apis": ["check()", "selectOption()", "toHaveText([...])", "toHaveURL()"], "goal": "Narrow the catalogue with filters, a price slider and sorting — and search from the header.", "tasks": ["Assert all 9 products show, then filter to Bags", "Sort cheapest first and read the prices in order", "Drag the price slider down to 50", "Make the filters impossible and assert the empty state", "Search \"beanie\" from the home page header"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('filtering and sorting the catalogue', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products');\n  await expect(page.getByTestId('result-count')).toHaveText('9 products');\n\n  await page.getByLabel('Bags').check();\n  await expect(page.getByTestId('result-count')).toHaveText('3 products');\n  await expect(page.getByTestId('product-card')).toHaveCount(3);\n\n  // cheapest first, then read every price back in order\n  await page.getByTestId('sort').selectOption('low');\n  await expect(page.getByTestId('product-price')).toHaveText(['$42.00', '$78.00$96.00', '$98.00']);\n\n  await page.getByLabel('Maximum price').fill('50');\n  await expect(page.getByTestId('result-count')).toHaveText('1 product');\n\n  // no footwear costs under $50\n  await page.getByLabel('Bags').uncheck();\n  await page.getByLabel('Footwear').check();\n  await expect(page.getByTestId('result-count')).toHaveText('0 products');\n  await expect(page.getByTestId('no-results')).toBeVisible();\n\n  await page.getByTestId('clear-filters').click();\n  await expect(page.getByTestId('result-count')).toHaveText('9 products');\n});\n\ntest('searching from the header', async ({ page }) => {\n  await page.goto('https://demo.retail.com/');\n  await page.getByTestId('search-input').fill('beanie');\n  await page.getByTestId('search-input').press('Enter');\n\n  await expect(page).toHaveURL(/\\/products\\?q=beanie/);\n  await expect(page.getByTestId('product-card')).toHaveCount(1);\n  await expect(page.getByRole('link', { name: 'Wool Beanie' })).toBeVisible();\n});\n", "num": "2.3", "expectFail": false}, {"id": "e2e-product", "mod": 2, "title": "Product details", "url": "/product/rain-shell", "apis": ["toHaveTitle()", "getByRole('radio')", "getByRole('tab')", "toBeDisabled()"], "goal": "Everything on a product page: title and breadcrumbs, size and colour, tabs, an accordion and the quantity.", "tasks": ["Open the Rain Shell from the Outerwear category and check the title and breadcrumbs", "Assert XL is unavailable, then choose M and Amber", "Read the SKU from the Specification tab and count the reviews", "Open the care instructions", "Add two to the cart and check the badge", "Prove an out-of-stock product cannot be added"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('choosing options on a product page', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products?category=Outerwear');\n  await page.getByRole('link', { name: 'Rain Shell' }).click();\n\n  await expect(page).toHaveTitle('Rain Shell · Northwind');\n  await expect(page.getByTestId('breadcrumbs')).toContainText('Outerwear');\n  await expect(page.getByTestId('price')).toContainText('$165.00');\n  await expect(page.getByTestId('stock')).toHaveText('In stock');\n\n  // sizes and colours are role=\"radio\" buttons, not inputs\n  await expect(page.getByRole('radio', { name: 'XL' })).toBeDisabled();\n  await page.getByRole('radio', { name: 'M' }).click();\n  await expect(page.getByRole('radio', { name: 'M' })).toBeChecked();\n  await page.getByRole('radio', { name: 'Amber' }).click();\n  await expect(page.getByTestId('colour-out')).toHaveText('Amber');\n\n  await page.getByRole('tab', { name: 'Specification' }).click();\n  await expect(page.getByTestId('spec-sku')).toHaveText('RAIN-SHELL');\n  await page.getByRole('tab', { name: /Reviews/ }).click();\n  await expect(page.getByTestId('review')).toHaveCount(3);\n\n  await page.getByRole('button', { name: 'Care instructions' }).click();\n  await expect(page.getByText('re-wax the outer once a season')).toBeVisible();\n\n  await page.getByRole('button', { name: 'Increase quantity' }).click();\n  await page.getByTestId('add-to-cart').click();\n  await expect(page.getByTestId('toast')).toHaveText('2 × Rain Shell added to your cart');\n  await expect(page.getByTestId('cart-count')).toHaveText('2');\n});\n\ntest('out of stock stays out of reach', async ({ page }) => {\n  await page.goto('https://demo.retail.com/product/merino-crew');\n  await expect(page.getByTestId('stock')).toHaveText('Out of stock');\n  await expect(page.getByTestId('add-to-cart')).toBeDisabled();\n});\n", "num": "2.4", "expectFail": false}, {"id": "e2e-cart", "mod": 2, "title": "Cart and promo codes", "url": "/products", "apis": ["filter({ hasText })", "first()", "toHaveText()", "getByRole('link')"], "goal": "A real multi-page journey: the cart survives navigation, quantities move the totals, codes apply or fail.", "tasks": ["Add the Everyday Tote from its product card", "Open the Rain Shell, choose L and Amber, and add three", "In the cart, check the lines and the subtotal", "Apply SAVE10 and check the discount and total", "Try a bad code and read the error", "Remove both lines and assert the empty cart"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('add two products, then change your mind', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products');\n\n  const tote = page.getByTestId('product-card').filter({ hasText: 'Everyday Tote' });\n  await tote.getByRole('button', { name: 'Add to cart' }).click();\n  await expect(page.getByTestId('toast')).toContainText('added to your cart');\n  await expect(page.getByTestId('cart-count')).toHaveText('1');\n\n  await page.getByRole('link', { name: 'Rain Shell' }).click();\n  await expect(page).toHaveURL(/\\/product\\/rain-shell/);\n  await page.getByRole('radio', { name: 'L' }).check();\n  await page.getByRole('radio', { name: 'Amber' }).check();\n  await page.getByRole('button', { name: 'Increase quantity' }).click();\n  await page.getByRole('button', { name: 'Increase quantity' }).click();\n  // exact, or this also matches \"Increase quantity\" and \"Decrease quantity\"\n  await expect(page.getByLabel('Quantity', { exact: true })).toHaveValue('3');\n  await page.getByTestId('add-to-cart').click();\n  await expect(page.getByTestId('cart-count')).toHaveText('4');\n\n  await page.getByRole('link', { name: 'Cart' }).click();\n  await expect(page.getByTestId('cart-line')).toHaveCount(2);\n  await expect(page.getByTestId('subtotal')).toHaveText('$537.00');\n\n  await page.getByLabel('Promotion code').fill('SAVE10');\n  await page.getByTestId('apply-promo').click();\n  await expect(page.getByTestId('promo-ok')).toBeVisible();\n  await expect(page.getByTestId('discount')).toHaveText('−$53.70');\n  await expect(page.getByTestId('grand-total')).toHaveText('$483.30');\n\n  await page.getByLabel('Promotion code').fill('FREESTUFF');\n  await page.getByTestId('apply-promo').click();\n  await expect(page.getByTestId('promo-error')).toContainText('not a valid code');\n\n  const lines = page.getByTestId('cart-line');\n  await lines.first().getByRole('button', { name: /^Remove/ }).click();\n  await lines.first().getByRole('button', { name: /^Remove/ }).click();\n  await expect(page.getByTestId('cart-empty')).toBeVisible();\n  await expect(page.getByTestId('cart-count')).toHaveText('0');\n});\n", "num": "2.5", "expectFail": false}, {"id": "e2e-checkout", "mod": 2, "title": "Checkout", "url": "/checkout", "apis": ["page.on('dialog')", "toHaveAttribute()", "selectOption()", "getByTestId()"], "goal": "Four steps, required fields, a delivery choice that changes the total, payment, and a confirmation dialog.", "tasks": ["Put a backpack in the cart and go to checkout", "Try to continue with empty fields and read the error", "Fill the address and choose Ireland", "Choose express delivery and check the new total", "Pay by card, accept the confirm dialog, and read the order number", "Find the new order at the top of your order history"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('place an order end to end', async ({ page }) => {\n  page.on('dialog', async dialog => {\n    console.log(dialog.type() + ': ' + dialog.message());\n    await dialog.accept();\n  });\n\n  await page.goto('https://demo.retail.com/product/commuter-backpack');\n  await page.getByTestId('add-to-cart').click();\n  await page.goto('https://demo.retail.com/checkout');\n  await expect(page.getByTestId('step-1')).toHaveAttribute('aria-current', 'step');\n\n  await page.getByTestId('to-delivery').click();\n  await expect(page.getByTestId('flash')).toContainText('required');\n\n  await page.getByLabel('Full name').fill('Ada Whitfield');\n  await page.getByLabel('Address line 1').fill('14 Wharf Street');\n  await page.getByLabel('Town or city').fill('Bristol');\n  await page.getByLabel('Postcode').fill('BS1 4QA');\n  await page.getByLabel('Country').selectOption('Ireland');\n  await page.getByTestId('to-delivery').click();\n\n  await expect(page.getByTestId('step-2')).toHaveAttribute('aria-current', 'step');\n  await expect(page.getByTestId('ship-cost')).toHaveText('Free');\n  await page.getByTestId('ship-express').getByRole('radio').check();\n  await expect(page.getByTestId('ship-cost')).toHaveText('$9.00');\n  await page.getByTestId('to-payment').click();\n\n  await expect(page.getByTestId('order-total')).toHaveText('$107.00');\n  await page.getByLabel('Card number').fill('4242 4242 4242 4242');\n  await page.getByLabel('Name on the card').fill('A WHITFIELD');\n  await page.getByLabel('Security code').fill('123');\n  await page.getByTestId('place-order').click();\n\n  await expect(page.getByTestId('order-confirmation')).toBeVisible();\n  await expect(page.getByTestId('order-paid')).toHaveText('$107.00');\n  const orderNumber = await page.getByTestId('order-number').textContent();\n\n  await page.getByTestId('view-orders').click();\n  await expect(page.getByTestId('order-row').first()).toContainText(orderNumber);\n  await expect(page.getByTestId('order-row').first()).toContainText('Processing');\n});\n", "num": "2.6", "expectFail": false}, {"id": "e2e-orders", "mod": 2, "title": "Order history", "url": "/orders", "apis": ["getByRole('columnheader')", "allTextContents()", "toBeDisabled()", "first()"], "goal": "A sortable, filterable, paged table of orders — and a detail row that opens underneath.", "tasks": ["Check the count, the first page of rows and the page label", "Sort by total, both ways", "Go to page two and prove Next is disabled", "Filter to Delivered orders", "Search for 10433 and open its detail row"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('sorting, filtering and paging orders', async ({ page }) => {\n  await page.goto('https://demo.retail.com/orders');\n  await expect(page.getByTestId('order-count')).toHaveText('8 orders');\n  await expect(page.getByTestId('order-row')).toHaveCount(5);\n  await expect(page.getByTestId('page-label')).toHaveText('Page 1 of 2');\n\n  const total = page.getByRole('columnheader', { name: 'Total' });\n  const firstRow = page.getByTestId('order-row').first();\n  await total.click();\n  await expect(firstRow).toContainText('$78.00');\n  await total.click();\n  await expect(firstRow).toContainText('$242.00');\n\n  await page.getByTestId('next-page').click();\n  await expect(page.getByTestId('page-label')).toHaveText('Page 2 of 2');\n  await expect(page.getByTestId('order-row')).toHaveCount(3);\n  await expect(page.getByTestId('next-page')).toBeDisabled();\n\n  await page.getByLabel('Status').selectOption('Delivered');\n  await expect(page.getByTestId('order-count')).toHaveText('4 orders');\n  const statuses = await page.getByTestId('order-status').allTextContents();\n  expect(statuses.every(s => s === 'Delivered')).toBe(true);\n\n  await page.getByTestId('order-search').fill('10433');\n  await expect(page.getByTestId('order-row')).toHaveCount(1);\n  await page.getByRole('button', { name: 'View' }).click();\n  await expect(page.getByTestId('order-detail')).toContainText('Canvas Weekender × 1');\n});\n", "num": "2.7", "expectFail": false}, {"id": "e2e-account", "mod": 2, "title": "Account settings", "url": "/account", "apis": ["fill()", "selectOption([...])", "setInputFiles()", "not.toBeEditable()"], "goal": "Update a customer profile that uses every kind of form control, then save it.", "tasks": ["Change the name, email, phone, website and date of birth", "Set the currency to GBP and choose two interests", "Prefer text messages, drop the newsletter, and switch on the dark theme", "Set the delivery time, quantity, spending cap and label colour", "Upload proof of address and check the two locked fields", "Save and read the confirmation"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('updating account settings', async ({ page }) => {\n  await page.goto('https://demo.retail.com/account');\n\n  await page.getByLabel('First name').fill('Ada');\n  await page.getByLabel('Last name').fill('Lovelace');\n  await page.getByLabel('Email address').fill('ada@northwind.test');\n  await page.getByLabel('Mobile number').fill('+44 7700 900123');\n  await page.getByLabel('Website').fill('https://northwind.test/ada');\n  await page.getByLabel('Date of birth').fill('1990-12-10');\n\n  await page.getByLabel('Currency').selectOption('GBP');\n  await page.getByLabel('Interests (choose more than one)').selectOption(['Bags', 'Outerwear']);\n  await expect(page.getByLabel('Interests (choose more than one)')).toHaveValues(['Bags', 'Outerwear']);\n\n  await page.getByRole('radio', { name: 'Text message' }).check();\n  await page.getByLabel('Monthly newsletter').uncheck();\n  await page.getByRole('switch', { name: 'Use the dark theme' }).check();\n\n  await page.getByLabel('Preferred time').fill('07:30');\n  await page.getByLabel('Default quantity').fill('4');\n  await page.getByLabel('Monthly spending cap').fill('400');\n  await expect(page.getByTestId('cap-out')).toHaveText('$400.00');\n  await page.getByLabel('Label colour for your parcels').fill('#d44a37');\n\n  await page.getByLabel('Upload proof of address').setInputFiles('utility-bill.pdf');\n  await expect(page.getByLabel('Customer number')).not.toBeEditable();\n  await expect(page.getByLabel('Legacy loyalty ID')).toBeDisabled();\n\n  await page.getByTestId('save-account').click();\n  await expect(page.getByTestId('flash')).toHaveText('Your settings have been saved.');\n});\n", "num": "2.8", "expectFail": false}, {"id": "e2e-support", "mod": 2, "title": "Contact support", "url": "/support", "apis": ["getByRole('tab')", "dragTo()", "frameLocator()", "getByRole('dialog')"], "goal": "The help centre journey: an FAQ, a contact form with drag and drop, a modal — and chat inside a frame.", "tasks": ["Open an FAQ answer", "Switch to \"Contact us\" and submit it empty to see the error", "Fill the form, drag the label onto the drop zone, and send", "Open the account-closure modal and back out", "Send a live chat message — it lives in a frame"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('getting help', async ({ page }) => {\n  await page.goto('https://demo.retail.com/support');\n\n  const answer = page.getByText('Standard delivery is 3 to 5 working days');\n  await expect(answer).toBeHidden();\n  await page.getByRole('button', { name: 'How long does delivery take?' }).click();\n  await expect(answer).toBeVisible();\n\n  await page.getByRole('tab', { name: 'Contact us' }).click();\n  await page.getByTestId('send-message').click();\n  await expect(page.getByTestId('flash')).toContainText('Choose a subject');\n\n  await page.getByLabel('What is it about?').selectOption('A repair');\n  await page.getByRole('radio', { name: 'Urgent' }).check();\n  await page.getByLabel('Your message').fill('The zip pull snapped on my weekender.');\n  await page.getByTestId('drag-label').dragTo(page.getByTestId('dropzone'));\n  await expect(page.getByTestId('dropzone')).toHaveText('parcel-label.pdf attached');\n  await page.getByTestId('send-message').click();\n  await expect(page.getByTestId('flash')).toContainText('ticket #8842');\n\n  await page.getByTestId('close-account').click();\n  await expect(page.getByRole('dialog')).toContainText('cannot be undone');\n  await page.getByTestId('modal-keep').click();\n  await expect(page.getByRole('dialog')).toHaveCount(0);\n\n  await page.getByRole('tab', { name: 'Live chat' }).click();\n  const chat = page.frameLocator('[data-testid=chat-frame]');\n  await chat.getByLabel('Message').fill('Where is my parcel?');\n  await chat.getByTestId('chat-send').click();\n  await expect(chat.getByTestId('chat-line').nth(1)).toContainText('Sam:');\n});\n", "num": "2.9", "expectFail": false}, {"id": "e2e-journey", "mod": 2, "title": "The full journey", "url": "/login", "apis": ["test.step()", "page.on('dialog')", "textContent()", "toContainText()"], "goal": "The capstone: sign in, search, choose, discount, check out, and find the order — one test, named steps.", "tasks": ["Sign in as Ada", "Search for \"backpack\" and open it", "Choose the Rust colour and add it", "Apply SAVE10 in the cart and check the total", "Check out — the name should already be filled in", "Find the order at the top of your history"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('a returning customer buys a backpack', async ({ page }) => {\n  page.on('dialog', dialog => dialog.accept());\n\n  await test.step('sign in', async () => {\n    await page.goto('https://demo.retail.com/login');\n    await page.getByLabel('Email address').fill('ada@northwind.test');\n    await page.getByLabel('Password').fill('secret123');\n    await page.getByTestId('signin-button').click();\n    await expect(page.getByTestId('welcome')).toHaveText('Welcome back, Ada');\n  });\n\n  await test.step('find the backpack', async () => {\n    await page.getByTestId('search-input').fill('backpack');\n    await page.getByTestId('search-input').press('Enter');\n    await expect(page.getByTestId('product-card')).toHaveCount(1);\n    await page.getByRole('link', { name: 'Commuter Backpack' }).click();\n  });\n\n  await test.step('choose a colour and add it', async () => {\n    await page.getByRole('radio', { name: 'Rust' }).click();\n    await page.getByTestId('add-to-cart').click();\n    await expect(page.getByTestId('cart-count')).toHaveText('1');\n  });\n\n  await test.step('apply a discount', async () => {\n    await page.getByRole('link', { name: 'Cart' }).click();\n    await expect(page.getByTestId('cart-line')).toContainText('Rust');\n    await page.getByLabel('Promotion code').fill('SAVE10');\n    await page.getByTestId('apply-promo').click();\n    await expect(page.getByTestId('grand-total')).toHaveText('$88.20');\n    await page.getByTestId('checkout').click();\n  });\n\n  await test.step('check out', async () => {\n    // signed in, so the name is already there\n    await expect(page.getByLabel('Full name')).toHaveValue('Ada Whitfield');\n    await page.getByLabel('Address line 1').fill('14 Wharf Street');\n    await page.getByLabel('Town or city').fill('Bristol');\n    await page.getByLabel('Postcode').fill('BS1 4QA');\n    await page.getByTestId('to-delivery').click();\n    await page.getByTestId('to-payment').click();\n    await page.getByLabel('Card number').fill('4242 4242 4242 4242');\n    await page.getByTestId('place-order').click();\n    await expect(page.getByTestId('order-confirmation')).toBeVisible();\n  });\n\n  await test.step('see it in order history', async () => {\n    const orderNumber = await page.getByTestId('order-number').textContent();\n    await page.getByTestId('view-orders').click();\n    await expect(page.getByTestId('order-row').first()).toContainText(orderNumber);\n    await expect(page.getByTestId('order-row').first()).toContainText('$88.20');\n  });\n});\n", "num": "2.10", "expectFail": false}, {"id": "craft-waiting", "mod": 3, "title": "Auto-waiting, not sleeping", "url": "/login", "apis": ["toBeVisible()", "waitFor()", "expect.poll()"], "goal": "Why there is no waitForTimeout in a good test: actions and assertions wait for the page on their own.", "tasks": ["Sign in and assert the \"Checking your details\" state while it lasts", "Assert the welcome heading — no sleep before it", "Wait for the Sign out button with waitFor()", "Use expect.poll to wait on a value you read yourself"], "solution": "const { test, expect } = require('@playwright/test');\n\n// Playwright waits on your behalf. There is not a single sleep in here.\ntest('waits for a slow sign-in', async ({ page }) => {\n  await page.goto('https://demo.retail.com/login');\n  await page.getByLabel('Email address').fill('ada@northwind.test');\n  await page.getByLabel('Password').fill('secret123');\n  await page.getByTestId('signin-button').click();\n\n  // between the click and the answer, the page shows a spinner\n  await expect(page.getByTestId('flash')).toContainText('Checking your details');\n\n  // toBeVisible retries for 5s, so the 800ms delay never matters\n  await expect(page.getByTestId('welcome')).toBeVisible();\n\n  // waitFor is the same idea, spelled out\n  await page.getByRole('button', { name: 'Sign out' }).waitFor();\n\n  // expect.poll re-reads a value of your own until it settles\n  await expect.poll(async () => (await page.getByTestId('flash').textContent()).trim())\n    .toBe('Signed in successfully');\n});\n", "num": "3.1", "expectFail": false}, {"id": "craft-hooks", "mod": 3, "title": "Hooks and steps", "url": "/products", "apis": ["test.describe()", "test.beforeEach()", "test.afterEach()", "test.step()"], "goal": "Share setup with beforeEach, tidy up with afterEach, and make long tests readable with named steps.", "tasks": ["Put two tests in a describe block", "Go to the products page in beforeEach", "Log the final URL in afterEach", "Prove each test starts with an empty cart", "Group the second test into two named steps"], "solution": "const { test, expect } = require('@playwright/test');\n\n// Each test starts on a fresh page — an empty cart, no session.\ntest.describe('the cart', () => {\n  test.beforeEach(async ({ page }) => {\n    await page.goto('https://demo.retail.com/products');\n  });\n\n  test.afterEach(async ({ page }) => {\n    console.log('finished on ' + page.url());\n  });\n\n  test('every test starts with an empty cart', async ({ page }) => {\n    await expect(page.getByTestId('cart-count')).toHaveText('0');\n  });\n\n  test('adding items, in named steps', async ({ page }) => {\n    await test.step('add two products', async () => {\n      await page.getByTestId('product-card').filter({ hasText: 'Wool Beanie' })\n        .getByRole('button', { name: 'Add to cart' }).click();\n      await page.getByTestId('product-card').filter({ hasText: 'Linen Scarf' })\n        .getByRole('button', { name: 'Add to cart' }).click();\n    });\n\n    await test.step('check the cart agrees', async () => {\n      await page.getByRole('link', { name: 'Cart' }).click();\n      await expect(page.getByTestId('cart-line')).toHaveCount(2);\n      await expect(page.getByTestId('subtotal')).toHaveText('$60.00');\n      // $60 clears the free-delivery line, so the total does not move\n      await expect(page.getByTestId('delivery')).toHaveText('Free');\n    });\n  });\n});\n", "num": "3.2", "expectFail": false}, {"id": "craft-annotations", "mod": 3, "title": "Soft assertions, skip and fail", "url": "/products", "apis": ["expect.soft()", "test.skip()", "test.fail()"], "goal": "Check several things without stopping at the first failure, and mark tests you mean to skip or expect to fail.", "tasks": ["Write three soft assertions about the products page", "Skip a test outright with test.skip", "Skip from inside a test when a condition holds", "Mark a test you expect to fail with test.fail"], "solution": "const { test, expect } = require('@playwright/test');\n\ntest('soft assertions check everything', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products');\n  // each of these is checked even if an earlier one fails\n  await expect.soft(page.getByTestId('result-count')).toHaveText('9 products');\n  await expect.soft(page.getByRole('heading', { name: 'All products' })).toBeVisible();\n  await expect.soft(page.getByTestId('cart-count')).toHaveText('0');\n  // change '9 products' to '99 products' and run again to watch a soft failure\n});\n\ntest.skip('skipped outright', async ({ page }) => {\n  await page.goto('https://demo.retail.com/never');\n});\n\ntest('skipped when there is nothing to test', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products');\n  const soldOut = await page.getByRole('button', { name: 'Out of stock' }).count();\n  test.skip(soldOut > 0, 'a sold-out product is showing');\n  await expect(page.getByTestId('product-card')).toHaveCount(9);\n});\n\n// expected to fail — so a red result here counts as a pass\ntest.fail('a known bug', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products');\n  await expect(page.getByTestId('nothing-here')).toBeVisible({ timeout: 800 });\n});\n", "num": "3.3", "expectFail": false}, {"id": "craft-data", "mod": 3, "title": "Data-driven tests", "url": "/login", "apis": ["for…of", "template literals", "test() in a loop"], "goal": "One test body, many rows of data: the loop runs when the file loads, so every row becomes its own test.", "tasks": ["Make a list of three products with slug, name and price", "Loop over it, creating one test per product", "Make a list of sign-in cases with the message each should show", "Loop over that too, and name each test after its case"], "solution": "const { test, expect } = require('@playwright/test');\n\n// The loops run when the file loads, so each row becomes its own test.\nconst products = [\n  { slug: 'canvas-weekender', name: 'Canvas Weekender', price: '$78.00' },\n  { slug: 'trail-runner',     name: 'Trail Runner',     price: '$115.00' },\n  { slug: 'wool-beanie',      name: 'Wool Beanie',      price: '$26.00' },\n];\n\nfor (const p of products) {\n  test(`${p.name} shows its price`, async ({ page }) => {\n    await page.goto(`https://demo.retail.com/product/${p.slug}`);\n    await expect(page.getByTestId('product-title')).toHaveText(p.name);\n    await expect(page.getByTestId('price')).toContainText(p.price);\n  });\n}\n\nconst signIns = [\n  { email: 'ada@northwind.test', password: 'secret123', message: 'Signed in successfully' },\n  { email: 'ada@northwind.test', password: 'wrong',     message: 'Those credentials are not valid.' },\n  { email: '',                   password: 'secret123', message: 'Enter your email address to continue.' },\n];\n\nfor (const [i, c] of signIns.entries()) {\n  test(`sign-in case ${i + 1}: ${c.message}`, async ({ page }) => {\n    await page.goto('https://demo.retail.com/login');\n    await page.getByLabel('Email address').fill(c.email);\n    await page.getByLabel('Password').fill(c.password);\n    await page.getByTestId('signin-button').click();\n    await expect(page.getByTestId('flash')).toHaveText(c.message);\n  });\n}\n", "num": "3.4", "expectFail": false}, {"id": "craft-typescript", "mod": 3, "title": "TypeScript specs", "url": "/login", "apis": ["type", "Page", "Locator", "as", "satisfies"], "goal": "The same tests with types. Annotations are stripped before running here — they are checked by tsc in a real project.", "tasks": ["Import Page and Locator as types", "Declare a Credentials type and a typed constant", "Write a typed helper that signs in", "Use it in two tests: one that passes, one that is rejected"], "solution": "import { test, expect, type Page, type Locator } from '@playwright/test';\n\ntype Credentials = { email: string; password: string };\n\nconst GOOD: Credentials = { email: 'ada@northwind.test', password: 'secret123' };\n\nasync function signIn(page: Page, { email, password }: Credentials): Promise<void> {\n  await page.getByLabel('Email address').fill(email);\n  await page.getByLabel('Password').fill(password);\n  await page.getByTestId('signin-button').click();\n}\n\ntest.describe('sign in', () => {\n  test.beforeEach(async ({ page }: { page: Page }) => {\n    await page.goto('https://demo.retail.com/login');\n  });\n\n  test('accepts the right credentials', async ({ page }) => {\n    await signIn(page, GOOD);\n    const welcome: Locator = page.getByTestId('welcome');\n    await expect(welcome).toHaveText('Welcome back, Ada');\n    const heading = (await welcome.textContent()) as string;\n    expect(heading.length).toBeGreaterThan(5);\n  });\n\n  test('rejects a bad password', async ({ page }) => {\n    await signIn(page, { email: 'ada@northwind.test', password: 'nope' } satisfies Credentials);\n    await expect(page.getByTestId('flash')).toHaveText('Those credentials are not valid.');\n  });\n});\n", "num": "3.5", "expectFail": false}, {"id": "craft-pom", "mod": 3, "title": "Page Object Model", "url": "/product/trail-runner", "apis": ["class", "readonly", "get", "async methods"], "goal": "Keep locators in one class per screen, so the test reads as behaviour instead of selectors.", "tasks": ["Write a ProductPage class with open, chooseSize and add", "Write a CartPage class with lines, total and applyPromo", "Use both in a test that adds two trainers and applies SAVE10", "Add a second test for the empty cart"], "solution": "import { test, expect, type Page, type Locator } from '@playwright/test';\n\nclass ProductPage {\n  readonly page: Page;\n  readonly addToCart: Locator;\n  readonly quantity: Locator;\n\n  constructor(page: Page) {\n    this.page = page;\n    this.addToCart = page.getByTestId('add-to-cart');\n    this.quantity = page.getByLabel('Quantity', { exact: true });\n  }\n\n  async open(slug: string): Promise<void> {\n    await this.page.goto('https://demo.retail.com/product/' + slug);\n  }\n\n  async chooseSize(size: string): Promise<void> {\n    await this.page.getByRole('radio', { name: size }).check();\n  }\n\n  async add(qty: number): Promise<void> {\n    await this.quantity.fill(String(qty));\n    await this.addToCart.click();\n  }\n}\n\nclass CartPage {\n  readonly page: Page;\n\n  constructor(page: Page) {\n    this.page = page;\n  }\n\n  get lines(): Locator { return this.page.getByTestId('cart-line'); }\n  get total(): Locator { return this.page.getByTestId('grand-total'); }\n\n  async open(): Promise<void> {\n    await this.page.getByRole('link', { name: 'Cart' }).click();\n  }\n\n  async applyPromo(code: string): Promise<void> {\n    await this.page.getByLabel('Promotion code').fill(code);\n    await this.page.getByTestId('apply-promo').click();\n  }\n}\n\ntest('two pages, one journey', async ({ page }) => {\n  const product = new ProductPage(page);\n  const cart = new CartPage(page);\n\n  await product.open('trail-runner');\n  await product.chooseSize('9');\n  await product.add(2);\n\n  await cart.open();\n  await expect(cart.lines).toHaveCount(1);\n  await expect(cart.total).toHaveText('$230.00');\n  await cart.applyPromo('SAVE10');\n  await expect(cart.total).toHaveText('$207.00');\n});\n\ntest('the empty cart', async ({ page }) => {\n  await page.goto('https://demo.retail.com/cart');\n  await expect(page.getByTestId('cart-empty')).toBeVisible();\n  await expect(new CartPage(page).lines).toHaveCount(0);\n});\n", "num": "3.6", "expectFail": false}, {"id": "craft-failure", "mod": 3, "title": "Reading a failure", "url": "/login", "expectFail": true, "apis": ["Console", "Trace", "snapshots"], "goal": "This one is meant to go red. Read the error, click the failing step in the Trace, and see the page as it was.", "tasks": ["Run it and read the error in the Console tab", "Click the failed step in the Trace tab to see the page at that moment", "Fix the password and run it again", "Then uncomment the last line and meet a strict-mode violation"], "solution": "const { test, expect } = require('@playwright/test');\n\n// Meant to fail. Read the error, then open the Trace and click the red step.\ntest('shows what a failure looks like', async ({ page }) => {\n  await page.goto('https://demo.retail.com/login');\n\n  await page.getByLabel('Email address').fill('ada@northwind.test');\n  await page.getByLabel('Password').fill('wrong-password');\n  await page.getByTestId('signin-button').click();\n\n  // retries for 5s, then fails: the welcome heading never appears\n  await expect(page.getByTestId('welcome')).toBeVisible();\n\n  // strict mode: this locator matches every category link at once\n  // await page.locator('nav.cats a').click();\n});\n", "num": "3.7"}, {"id": "craft-record", "mod": 3, "title": "Recording a test", "url": "/products", "apis": ["Record", "Pick", "Inspect"], "goal": "Let the recorder write the first draft: use the page by hand, then turn the recording into a real test.", "tasks": ["Press ⏺ Record above the page", "Tick Bags, sort by price, and add the Everyday Tote", "Stop recording and press \"Make a test\"", "Add the assertion the recorder cannot guess — the cart count"], "solution": "import { test, expect } from '@playwright/test';\n\n// What the recorder writes for: tick Bags, sort cheapest first, add the tote.\n// A recording is a first draft — it clicks, but it never checks anything.\ntest('recorded flow', async ({ page }) => {\n  await page.goto('https://demo.retail.com/products');\n  await page.getByRole('checkbox', { name: 'Bags' }).check();\n  await page.getByTestId('sort').selectOption('low');\n  await page.getByTestId('product-card').filter({ hasText: 'Everyday Tote' })\n    .getByRole('button', { name: 'Add to cart' }).click();\n\n  // added by hand: the assertion that makes it a test\n  await expect(page.getByTestId('cart-count')).toHaveText('1');\n});\n", "num": "3.8", "expectFail": false}], "playground": {"id": "playground", "mod": 0, "title": "Playground", "url": "/", "apis": [], "tasks": [], "goal": "A blank spec for anything you like. It is saved as you type.", "solution": "import { test, expect } from '@playwright/test';\n\ntest('my test', async ({ page }) => {\n  await page.goto('https://demo.retail.com/');\n\n});\n"}};
+
+/* ============================================================
+   Task checks: one per task, in the order the lesson lists them.
+   Like the REST Assured lessons, a task ticks itself — no
+   "mark done". A check sees your code with comments stripped,
+   double quotes turned into single ones and whitespace squeezed,
+   plus what happened when you ran it:
+     c.green  the run of that code passed (nothing failed)
+     c.red    the run failed
+     c.ui     things you did in the app (record, trace click…)
+     c.rec    the recorder's lines,  c.log  the run's console
+   Most tasks need both: the code that does it, and a green run
+   to prove it works. All ticks in = lesson complete.
+   ============================================================ */
+const TK = (() => {
+  const rx = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\/* ---------------- editor ---------------- */');
+  const has = (code, x) => typeof x === 'string' ? code.includes(x)
+    : x instanceof RegExp ? x.test(code) : !!x(code);
+  /* K: your run went green and the code has every piece */
+  const K = (...xs) => c => c.green && xs.every(x => has(c.code, x));
+  const CNT = (re, n) => code =>
+    (code.match(new RegExp(re.source, 'g' + re.flags.replace('g', ''))) || []).length >= n;
+  const NOT = re => code => !re.test(code);
+  const PH = (t) => new RegExp("getByPlaceholder\\('" + rx(t));
+  const NOSLEEP = NOT(/waitForTimeout\(|setTimeout\(|sleep\(/);
+  const TESTS = n => CNT(/(^|[^.\w])test\s*\(/, n);
+  const LOOP = /for\s*\(\s*(const|let)[^)]*\bof\b|\.forEach\(/;
+  const maxTimeout = code => Math.max(0, ...[...code.matchAll(/timeout:\s*(\d[\d_]*)/g)]
+    .map(m => +m[1].replace(/_/g, '')));
+  /* the recorder's flow for 3.8: tick Bags, sort, add the tote */
+  const recFlow = s => /Bags/.test(s) && /\.check\(\)|\.click\(\)/.test(s) &&
+    /selectOption\(/.test(s) && /Everyday Tote|Add to cart|add-to-cart|product-card/.test(s);
+  /* the typed helper for 3.5, called from two tests */
+  const helperTwice = code => {
+    const m = /function\s+(\w+)\s*\(\s*page\s*:|const\s+(\w+)\s*=\s*async\s*\(\s*page\s*:/.exec(code);
+    return !!m && CNT(new RegExp('await\\s+' + rx(m[1] || m[2]) + '\\s*\\('), 2)(code);
+  };
+
+  /* what the checks read: no comments, one kind of quote, one space */
+  function forChecks(src){
+    let out = '', i = 0;
+    const s = String(src || '');
+    while (i < s.length) {
+      const ch = s[i];
+      if (ch === "'" || ch === '"' || ch === '`') {
+        let j = i + 1;
+        while (j < s.length && s[j] !== ch) { if (s[j] === '\\') j++; j++; }
+        out += s.slice(i, j + 1); i = j + 1; continue;
+      }
+      if (ch === '/' && s[i + 1] === '/') { while (i < s.length && s[i] !== '\n') i++; continue; }
+      if (ch === '/' && s[i + 1] === '*') { const e = s.indexOf('*/', i + 2); i = e < 0 ? s.length : e + 2; continue; }
+      out += ch; i++;
+    }
+    return out.replace(/"/g, "'").replace(/\s+/g, ' ');
+  }
+
+  const CHECKS = {
+    /* ---------- module 1: web elements ---------- */
+    'el-inputs': [
+      K("'Full name'", "'Email address'", "'Password'", "'Age'", /\.fill\(/, 'in-save', 'in-result',
+        /toHaveText\(|toContainText\(/),
+      K('pw-toggle', /toHaveAttribute\(\s*'type'\s*,\s*'text'\s*\)/),
+      K("'Welcome voucher'", /not\.toBeEditable\(/, "'Loyalty number'", /toBeDisabled\(/),
+      K("'Add a gift message'", /\.check\(\)/, /toBeEnabled\(/),
+      K("'Postcode'", 'post-error', /post-ok|toHaveCount\(\s*0\s*\)|toBeHidden\(/),
+      K(PH('Search your orders'), /\.fill\(/),
+    ],
+    'el-buttons': [
+      K("'Add one to the basket'", 'add-count', CNT(/\.click\(/, 2)),
+      K(/\.dblclick\(/),
+      K(/button:\s*'right'/, "'Copy link'"),
+      K("'Place order'", /toBeDisabled\(/, /\.check\(\)/, /toBeEnabled\(/),
+      K("'Save address'", 'save-result', NOSLEEP),
+      K(/twin-beanie|Wool Beanie/, /name:\s*'Add'/, 'twin-result'),
+      K("'Save to wishlist'", /\.click\(/, /'aria-pressed'/),
+    ],
+    'el-links': [
+      K("'Download the size guide'", "'href'", "'download'"),
+      K("'Returns policy", "'target'", "'_blank'"),
+      K("'Email the help team'", "'href'", /mailto:/),
+      K('RT-10476', "'View details'"),
+      K("'Browse bags'", /\.click\(/, /toHaveURL\(|page-title/),
+      K('footer-links', /\.goto\(/, /status\(\)/, /404/),
+    ],
+    'el-checkboxes': [
+      K("'Gift wrap this order", /\.check\(\)/, /\.uncheck\(\)/, CNT(/toBeChecked\(\)/, 2)),
+      K("'Interests'", "'Bags'", "'Outerwear'", /\.check\(\)/),
+      K("'Select all items'", /\.uncheck\(\)/, 'remove-selected'),
+      K("'Order confirmation emails", /toBeChecked\(\)/, /toBeDisabled\(\)/),
+      K("'Eco packaging'", "'Carbon-neutral delivery'", /press\(\s*'Space'\s*\)/),
+    ],
+    'el-radios': [
+      K("'Standard", /toBeChecked\(\)/, "'Express", /\.check\(\)|\.click\(/),
+      K("'Cash on delivery", /toBeDisabled\(\)/, "'PayPal'"),
+      K("'Plus, yearly'", /\.click\(/),
+      K("'Include a gift receipt?'", "'Yes'", /\.check\(\)|\.click\(/),
+    ],
+    'el-dropdowns': [
+      K(/selectOption\(\s*(\{\s*value:\s*)?'IE'/, /selectOption\(\s*\{\s*label:\s*'Germany'/,
+        /selectOption\(\s*\{\s*index:\s*\d/),
+      K("'Sizes you wear'", /selectOption\(\s*\[/, /toHaveValues\(/),
+      K(/selectOption\([^)]*'Trail Runner'/),
+      K("'Nearest store'", /selectOption\([^)]*'(IN|India)'/, /selectOption\([^)]*'Bengaluru'/,
+        /toBeEnabled\(|toHaveText\(\s*\[|toHaveCount\(/),
+      K("'Currency'", /toHaveValue\(|inputValue\(|option:checked/),
+    ],
+    'el-autocomplete': [
+      K('sort-trigger', "'Price: low to high'", /\.click\(/),
+      K(/listbox/, /toBeHidden\(|not\.toBeVisible\(|toHaveCount\(\s*0\s*\)/),
+      K(/\.fill\(\s*'ra'\s*\)/, /toHaveCount\(\s*2\s*\)/, "'Rain Shell'"),
+      K(/\.fill\(\s*'ind'\s*\)/, CNT(/'ArrowDown'/, 2), /'Enter'/),
+    ],
+    'el-dialogs': [
+      K(/\.(on|once)\(\s*'dialog'/, 'btn-alert', 'btn-confirm', /\.accept\(/),
+      K('btn-prompt', /\.accept\(\s*[^)\s]/),
+      K('btn-late', 'late-result'),
+      K('open-modal', "'Code'", /\.fill\(/, 'md-apply'),
+      K('cookie-accept', /\.click\(/),
+      K(TESTS(2), 'btn-confirm', "'Kept'"),
+    ],
+    'el-frames': [
+      K("'Card number'", /toHaveCount\(\s*0\s*\)/),
+      K(/frameLocator\(/, 'pay-frame', "'Card number'", /\.fill\(/, 'pf-result'),
+      K(/frameLocator\(/, 'chat-frame', 'attach-frame', 'chat-send', 'attach-btn'),
+      K('partner-frame', '#coupon', /shop5/i, /partner10/i),
+    ],
+    'el-shadow': [
+      K("'Redeem 500 points'", /\.click\(/, /Points: ?740/),
+      K("'Rate 4 out of 5'", /\.click\(/, 'rating-result'),
+      K(/locator\(\s*'(xpath=)?\/\/.{0,60}Redeem/, /toHaveCount\(\s*0\s*\)/),
+      K('closed-host', /toBeVisible\(|toBeAttached\(/, /getByText\(/, /toHaveCount\(\s*0\s*\)/),
+    ],
+    'el-tables': [
+      K('stock-table', /toHaveCount\(|\.count\(\)/),
+      K('Rain Shell', /'row'|'tr'|tbody tr|filter\(/, /toHaveText\(|toContainText\(|textContent\(|innerText\(/),
+      K(/allTextContents\(\)|allInnerTexts\(\)|evaluateAll\(/, /reduce\(|\+=/),
+      K("'Product name'", 'row-add', 'basket-table', /Remove/),
+      K('archive-table', CNT(/\.check\(\)/, 2), 'archive-btn'),
+      K('sort-table', "'Price'", /\.click\(/, /aria-sort|toHaveText\(\s*\[|allTextContents\(/),
+    ],
+    'el-mouse': [
+      K('shop-menu', CNT(/\.hover\(/, 2), /toBeVisible\(\)/, /toBeHidden\(\)|not\.toBeVisible\(\)/),
+      K('shop-menu', /\.hover\(/, "'Footwear'", /\.click\(/),
+      K('returns-info', /\.hover\(/, /tooltip/),
+      K('reveal-card', /\.hover\(/, 'quick-view', /\.click\(/),
+      K(CNT(/dragTo\(|dragAndDrop\(/, 2), 'wishlist-zone'),
+    ],
+    'el-keyboard': [
+      K(/press\(\s*'Enter'\s*\)/, /press\(\s*'Shift\+A'\s*\)/),
+      K(/'(Control|Ctrl|Meta|ControlOrMeta)\+[Kk]'/, /toBeFocused\(\)/),
+      K("'First name'", /\.focus\(\)|\.click\(/, CNT(/press\(\s*'Tab'\s*\)/, 2), /toBeFocused\(\)/),
+      K("'Promotion code'", /\.fill\(/, /press\(\s*'Enter'\s*\)/, 'promo-result'),
+      K('kb-open', /press\(\s*'Escape'\s*\)/),
+    ],
+    'el-files': [
+      K("'Upload a receipt'", /setInputFiles\(/, 'one-result'),
+      K("'Product photos'", /setInputFiles\(\s*\[[^\]]*,[^\]]*,[^\]]*\]/),
+      K(/setInputFiles\([^)]*\.png/i, CNT(/zone-result/, 2)),
+      K(/waitForEvent\(\s*'download'\s*\)/, /suggestedFilename\(\)/),
+    ],
+    'el-pickers': [
+      K("'Delivery date'", /2026-10-03/, "'Delivery slot'", /09:30/),
+      K("'Open calendar'", /toBeDisabled\(\)/, "'Next month'", /October 2026/),
+      K("'3 October 2026'", /\.click\(/, "'Collection date'", /toHaveValue\(/),
+      K("'Budget'", "'250'", "'More'", "'Quantity'", /toHaveValue\(\s*'3'\s*\)/),
+      K("'Engraving colour'", /\.fill\(\s*'#[0-9a-fA-F]{6}'/),
+    ],
+    'el-dynamic': [
+      K('load-recs', 'recs-loading', 'rec-item', /toHaveCount\(\s*3\s*\)/, NOSLEEP),
+      K('check-stock', 'stock-msg', NOSLEEP),
+      K("'Close banner'", 'sale-banner', /toBeHidden\(|not\.toBeVisible\(|toHaveCount\(\s*0\s*\)/),
+      K("'resend'", /toBeEnabled\(/, 'resend-result', NOSLEEP),
+      K("'track'", 'order-status', /Shipped/, NOSLEEP),
+      K(TESTS(2), 'run-report', 'report-done', code => maxTimeout(code) > 7000),
+    ],
+    'el-widgets': [
+      K("'Care'", "'aria-selected'", 'wg-panel'),
+      K("'Do you ship abroad?'", "'aria-expanded'", /\.click\(/),
+      K('size-guide', "'Size guide'", /'row'|'tr'/, "'Close'", /toHaveCount\(\s*0\s*\)|toBeHidden\(\)/),
+      K('save-later', "'toast'", /toBeHidden\(\)|toHaveCount\(\s*0\s*\)/),
+      K('start-upload', "'100'", /aria-valuenow|upload-result/),
+    ],
+    'el-scroll': [
+      K('feed-item', /toHaveCount\(\s*10\s*\)/),
+      K(CNT(/scrollIntoViewIfNeeded\(\)|mouse\.wheel\(/, 2), /toHaveCount\(\s*20\s*\)/, /toHaveCount\(\s*30\s*\)/),
+      K('page-end', /not\.toBeInViewport\(/, /scrollIntoViewIfNeeded\(\)/, /\)\s*\.toBeInViewport\(/),
+      K('back-to-top', /\.click\(/, /not\.toBeInViewport\(/),
+    ],
+
+    /* ---------- module 2: retail journeys ---------- */
+    'e2e-signin': [
+      K("'Email address'", 'ada@northwind.test', "'Password'", "'secret123'", 'signin-button'),
+      K('welcome', /Welcome back, Ada/, 'flash', /Signed in successfully/),
+      K(TESTS(2), /Those credentials are not valid/),
+      K("'welcome'", /toHaveCount\(\s*0\s*\)|not\.toBeVisible\(\)|toBeHidden\(\)/),
+    ],
+    'e2e-register': [
+      K(/\/login/, "'Create an account'", /\.click\(/),
+      K("'Create account'", /toBeDisabled\(\)/, "'I accept the terms of sale'", /toBeEnabled\(\)/),
+      K("'Create account'", /\.click\(/, /toHaveCount\(\s*4\s*\)|4 fields need/),
+      K("'First name'", "'Last name'", "'Date of birth'", /selectOption\(/, "'Bristol'", /Account created/),
+    ],
+    'e2e-browse': [
+      K('result-count', /9 products/, "'Bags'", /\.check\(\)/),
+      K(/selectOption\(/, 'product-price', /toHaveText\(\s*\[|allTextContents\(/),
+      K("'Maximum price'", "'50'"),
+      K('no-results', /toBeVisible\(\)/),
+      K('search-input', /'beanie'/i, /press\(\s*'Enter'\s*\)/),
+    ],
+    'e2e-product': [
+      K(/Outerwear/, "'Rain Shell'", /\.click\(/, /toHaveTitle\(|breadcrumbs/),
+      K("'XL'", /toBeDisabled\(\)/, "'M'", "'Amber'"),
+      K("'Specification'", 'spec-sku', /Reviews/, "'review'", /toHaveCount\(/),
+      K("'Care instructions'", /\.click\(/),
+      K("'Increase quantity'", 'add-to-cart', 'cart-count', "'2'"),
+      K(/Out of stock.*add-to-cart.*toBeDisabled\(\)/),
+    ],
+    'e2e-cart': [
+      K("'Everyday Tote'", "'Add to cart'", /\.click\(/),
+      K("'Rain Shell'", "'L'", "'Amber'", 'add-to-cart', /'3'|Increase quantity.*Increase quantity/),
+      K('cart-line', 'subtotal', /toHaveCount\(|toHaveText\(/),
+      K(/'SAVE10'/i, 'apply-promo', 'discount', 'grand-total'),
+      K('promo-error'),
+      K(/Remove/, 'cart-empty'),
+    ],
+    'e2e-checkout': [
+      K(/backpack/i, 'add-to-cart', /checkout/),
+      K('to-delivery', 'flash', /required/),
+      K("'Full name'", "'Address line 1'", "'Town or city'", "'Postcode'", /selectOption\([^)]*'(Ireland|IE)'/),
+      K('ship-express', 'ship-cost'),
+      K("'dialog'", /\.accept\(/, "'Card number'", 'place-order', 'order-number'),
+      K('view-orders', 'order-row', /\.first\(\)|\.nth\(\s*0\s*\)/),
+    ],
+    'e2e-orders': [
+      K('order-count', 'order-row', 'page-label', /Page 1 of 2/),
+      K("'Total'", /\$78\.00/, /\$242\.00/),
+      K('next-page', /toBeDisabled\(\)/, /Page 2 of 2/),
+      K(/selectOption\([^)]*'Delivered'/),
+      K('order-search', "'10433'", "'View'", 'order-detail'),
+    ],
+    'e2e-account': [
+      K("'First name'", "'Email address'", "'Mobile number'", "'Website'", "'Date of birth'", /\.fill\(/),
+      K(/selectOption\([^)]*'GBP'/, /selectOption\(\s*\[/),
+      K("'Text message'", "'Monthly newsletter'", /\.uncheck\(\)/, "'Use the dark theme'"),
+      K("'Preferred time'", "'Default quantity'", "'Monthly spending cap'", "'Label colour"),
+      K("'Upload proof of address'", /setInputFiles\(/, "'Customer number'", "'Legacy loyalty ID'"),
+      K('save-account', 'flash', /settings have been saved/),
+    ],
+    'e2e-support': [
+      K("'How long does delivery take?'", /\.click\(/),
+      K("'Contact us'", 'send-message', /Choose a subject/),
+      K("'What is it about?'", "'Your message'", 'drag-label', /dragTo\(/, 'dropzone', /8842|ticket/),
+      K('close-account', 'modal-keep'),
+      K(/frameLocator\(/, 'chat-frame', 'chat-send'),
+    ],
+    'e2e-journey': [
+      K('ada@northwind.test', "'secret123'", 'signin-button'),
+      K('search-input', /'backpack'/i, "'Commuter Backpack'"),
+      K("'Rust'", 'add-to-cart'),
+      K(/'SAVE10'/i, 'apply-promo', 'grand-total'),
+      K("'Full name'", /toHaveValue\(/, 'place-order'),
+      K('order-number', 'view-orders', 'order-row'),
+    ],
+
+    /* ---------- module 3: the craft ---------- */
+    'craft-waiting': [
+      K(/Checking your details/),
+      K('welcome', /toBeVisible\(\)|toHaveText\(/, NOSLEEP),
+      K("'Sign out'", /\.waitFor\(/),
+      K(/expect\.poll\(/),
+    ],
+    'craft-hooks': [
+      K(/test\.describe\(/, TESTS(2)),
+      K(/beforeEach\(.*goto\([^)]*products/),
+      K(/afterEach\(/, /page\.url\(\)/),
+      K('cart-count', "'0'"),
+      K(CNT(/test\.step\(/, 2)),
+    ],
+    'craft-annotations': [
+      K(CNT(/expect\.soft\(/, 3)),
+      K(/test\.skip\(\s*['`]/),
+      K(/test\.skip\(\s*[^'`\s)]/),
+      K(/test\.fail\(/),
+    ],
+    'craft-data': [
+      K(CNT(/slug:/, 3), /name:/, /price:/),
+      K(LOOP, /test\(\s*`/),
+      K(CNT(/message:/, 2), /password:/),
+      K(CNT(LOOP, 2), /test\(\s*`[^`]*\$\{/),
+    ],
+    'craft-typescript': [
+      /* the starter already imports them — the task is to use them as types */
+      K(/import[^;]*\btype\b[^;]*\bPage\b/, /:\s*Page\b/, /:\s*Locator\b/),
+      K(/type\s+Credentials\s*=|interface\s+Credentials\b/, /:\s*Credentials\b/),
+      K(/function\s+\w+\s*\(\s*page\s*:\s*Page|const\s+\w+\s*=\s*async\s*\(\s*page\s*:\s*Page/),
+      K(TESTS(2), helperTwice),
+    ],
+    'craft-pom': [
+      K(/class\s+ProductPage\b/, /\bopen\s*\(/, /chooseSize\s*\(/, /\badd\s*\(/),
+      K(/class\s+CartPage\b/, /\blines\b/, /\btotal\b/, /applyPromo\s*\(/),
+      K(/new\s+ProductPage\(/, /new\s+CartPage\(/, /applyPromo\(\s*'SAVE10'/i),
+      K(TESTS(2), 'cart-empty'),
+    ],
+    'craft-failure': [
+      c => c.red && /welcome/.test(c.code),              /* it went red; the Console opens on its own */
+      c => c.ui.has('trace-fail'),                        /* a failed step clicked in the Trace */
+      c => c.green && /'secret123'/.test(c.code),
+      c => c.red && /strict mode violation/.test(c.log),
+    ],
+    'craft-record': [
+      c => c.ui.has('record'),
+      c => recFlow(c.rec) || (c.green && recFlow(c.code)),
+      c => c.ui.has('make'),
+      K('cart-count', /toHaveText\(|toContainText\(/),
+    ],
+  };
+  return {CHECKS, forChecks};
+})();
 
 /* ---------------- editor ---------------- */
 const ta = $('#code'), hl = $('#hl'), gutter = $('#gutter'), codewrap = $('#codewrap');
@@ -6235,6 +6582,7 @@ function setRecording(on){
     if (!recLines.length) recPush(`await page.goto('${ORIGIN}${currentPath || '/'}');`);
   } else recFlush();
   recStatus();
+  taskEvent(on ? 'record' : 'record-stop');
 }
 
 const labelControl = l => l.htmlFor
@@ -6350,9 +6698,17 @@ $('#recReplace').addEventListener('click', () => {
   recFlush();
   if (!recLines.length) return;
   const script = recScript();
-  openLesson('playground', {stay: true});
-  ta.value = script;
-  paint(); autosave();
+  if (lesson && lesson.id === 'craft-record') {
+    /* lesson 3.8 is about this very button: the test lands in the lesson, as your own version */
+    if (mode !== 'starter') setMode('starter');
+    ta.value = script;
+    paint(); autosave();
+    taskEvent('make');
+  } else {
+    openLesson('playground', {stay: true});
+    ta.value = script;
+    paint(); autosave();
+  }
   if (isNarrow()) panel('code');
 });
 
@@ -6501,7 +6857,8 @@ if (window.matchMedia) {
    the store, 3 · the craft that keeps a suite standing.
    Every lesson opens in "Try it" — the tasks as TODOs, your own
    copy kept as you type — with the verified solution one click
-   away. A lesson counts as done when your version passes.
+   away. Each task ticks itself when a run of your own version
+   proves it (see TK above); all ticks in = lesson complete.
    ============================================================ */
 const LESSONS = COURSE.lessons, PLAY = COURSE.playground;
 const LESSON = Object.fromEntries(LESSONS.concat([PLAY]).map(L => [L.id, L]));
@@ -6512,6 +6869,23 @@ let lesson = null, mode = 'starter';
 const doneSet = new Set((() => {
   try { return JSON.parse(localStorage.getItem(DONE_KEY) || '[]'); } catch (e) { return []; }
 })());
+
+/* ---- task ticks: what your runs have proven, lesson by lesson ---- */
+const TICKS_KEY = 'pw-lesson-ticks';
+const TICKS = (() => {
+  try { const t = JSON.parse(localStorage.getItem(TICKS_KEY) || '{}'); return t && typeof t === 'object' ? t : {}; }
+  catch (e) { return {}; }
+})();
+const saveTicks = () => { try { localStorage.setItem(TICKS_KEY, JSON.stringify(TICKS)); } catch (e) {} };
+/* a lesson finished before tasks ticked themselves has none stored — show it fully ticked */
+const ticksOf = L => new Set(TICKS[L.id] ? TICKS[L.id]
+  : doneSet.has(L.id) ? L.tasks.map((t, i) => i) : []);
+/* things done in the app this visit (recorder, trace clicks) — ticks they earn are kept, these are not */
+const taskSeen = {};
+const taskSeenIn = id => taskSeen[id] || (taskSeen[id] = new Set());
+let runFor = null;           /* the lesson, mode and code a run started with */
+let lastRanId = null;        /* the lesson whose run the Trace is showing */
+let tasksOpen = true;
 
 const isTs = src => /^import /m.test(src);
 const fileFor = L => (L.id === 'playground' ? 'playground' : L.id.replace(/^[a-z0-9]+-/, '')) +
@@ -6541,7 +6915,7 @@ function readState(){ try { return JSON.parse(localStorage.getItem(STATE_KEY) ||
 function saveState(){
   try {
     localStorage.setItem(STATE_KEY, JSON.stringify({
-      lesson: lesson && lesson.id, mode, fold: $('#lsCard').classList.contains('folded')}));
+      lesson: lesson && lesson.id, mode, fold: $('#lsCard').classList.contains('folded'), tasks: tasksOpen}));
   } catch (e) {}
 }
 
@@ -6593,21 +6967,14 @@ function renderCard(){
   $('#lsGoal').textContent = L.goal;
   $('#lsApis').innerHTML = L.apis.map(a => `<code>${esc(a)}</code>`).join('');
   $('#lsApis').hidden = !L.apis.length;
-  $('#lsTaskList').innerHTML = L.tasks.map(t => `<li>${esc(t)}</li>`).join('');
-  $('#lsTasksSum').textContent = `Your tasks (${L.tasks.length})`;
-  $('#lsTasks').hidden = !L.tasks.length;
-  /* the starter already lists the tasks as TODOs, so keep the card short */
-  $('#lsTasks').open = false;
+  renderTasks();
+  $('#lsTasks').open = tasksOpen;
   document.querySelectorAll('.ls-mode [data-mode]').forEach(b =>
     b.setAttribute('aria-selected', String(b.dataset.mode === mode)));
   $('.ls-mode').hidden = play;
   $('#lsOpen').textContent = L.url;
   $('#lsOpen').title = 'Show ' + ORIGIN + L.url + ' in the browser';
   $('#lsReset').hidden = mode !== 'starter';
-  $('#lsDoneBtn').hidden = play;
-  const done = doneSet.has(L.id);
-  $('#lsDoneBtn').setAttribute('aria-pressed', String(done));
-  $('#lsDoneBtn').textContent = done ? '✓ Done' : 'Mark done';
   const note = L.expectFail ? 'This lesson is meant to go red — reading the failure is the point.'
     : mode === 'solution' && !play ? 'You are looking at the answer. Edits here are not kept — “Try it” holds your own copy.'
     : '';
@@ -6617,6 +6984,23 @@ function renderCard(){
   $('#lsPrev').disabled = i <= 0;
   $('#lsNext').disabled = i >= LESSONS.length - 1;
   $('#lsNow').innerHTML = play ? '<b>Playground</b>' : `${L.num} · <b>${esc(L.title)}</b>`;
+}
+/* the task list, each with its tick */
+function renderTasks(fresh = []){
+  const L = lesson, have = ticksOf(L), total = L.tasks.length;
+  const n = L.tasks.filter((t, i) => have.has(i)).length, all = total > 0 && n === total;
+  $('#lsTaskList').innerHTML = L.tasks.map((t, i) => {
+    const on = have.has(i);
+    return `<li class="${on ? 'done' : ''}${fresh.includes(i) ? ' just' : ''}">` +
+      `<span class="ck" aria-hidden="true">✓</span>` +
+      `<span>${esc(t)}<span class="sr">${on ? ' — done' : ' — not done yet'}</span></span></li>`;
+  }).join('');
+  $('#lsTasksSum').innerHTML = `Your tasks<span class="tcount${all ? ' all' : ''}">${all ? '✓ ' : ''}${n}/${total}</span>`;
+  $('#lsTaskHint').textContent = all ? 'Lesson complete — every task ticked.'
+    : L.id === 'craft-record' ? 'The recorder ticks the first three tasks; a passing run with your assertion ticks the last.'
+    : L.expectFail ? 'Here a red run counts: ticks follow the failure, the Trace, the fix and the strict-mode error.'
+    : 'Each task ticks itself when a run of your code passes and does what it asks.';
+  $('#lsTasks').hidden = !total;
 }
 function renderProgress(){
   const n = LESSONS.filter(L => doneSet.has(L.id)).length, total = LESSONS.length;
@@ -6686,14 +7070,59 @@ function updateHint(){
     h.hidden = false;
   } else h.hidden = true;
 }
-/* your own version passing is what counts as done */
-function lessonRan(c){
-  if (!lesson || lesson.id === 'playground' || aborted || c.failed || !c.passed) return;
-  if (mode !== 'starter' || ta.value.trim() === starterFor(lesson).trim()) return;
-  if (!doneSet.has(lesson.id)) {
-    setDone(lesson.id, true);
-    summary.textContent += '  ·  lesson complete ✓';
+/* a run finished (run = its result and code) or something happened in
+   the app (run = null): tick every task that is now proven, and finish
+   the lesson when the last one goes in. Only your own version counts. */
+function applyTicks(run){
+  const L = lesson;
+  if (!L || L.id === 'playground' || mode !== 'starter' || !L.tasks.length) return;
+  const checks = TK.CHECKS[L.id] || [], have = ticksOf(L), total = L.tasks.length;
+  const c = {
+    code: TK.forChecks(run ? run.src : ta.value),
+    green: !!run && !run.failed && run.passed > 0,
+    red: !!run && run.failed > 0,
+    ui: taskSeenIn(L.id),
+    rec: TK.forChecks(recLines.join('\n')),
+    log: run ? consoleBody.textContent : ''
+  };
+  const fresh = [];
+  L.tasks.forEach((t, i) => {
+    if (have.has(i)) return;
+    let ok = false;
+    try { ok = !!(checks[i] && checks[i](c)); } catch (e) { ok = false; }
+    if (ok) { have.add(i); fresh.push(i); }
+  });
+  if (!fresh.length) {
+    if (run && have.size < total) summary.textContent += c.green || L.expectFail
+      ? `  ·  tasks ${have.size}/${total}`
+      : `  ·  tasks ${have.size}/${total} — they tick when the run passes`;
+    return;
   }
+  TICKS[L.id] = [...have].sort((a, b) => a - b);
+  saveTicks();
+  const all = have.size >= total;
+  if (all && !doneSet.has(L.id)) setDone(L.id, true);      /* re-renders the card and progress */
+  renderTasks(fresh);
+  const msg = all ? 'lesson complete ✓'
+    : `${fresh.length} task${fresh.length > 1 ? 's' : ''} ticked ✓ (${have.size}/${total})`;
+  if (run) summary.textContent += '  ·  ' + msg;
+  else { markSaved(msg); setTimeout(() => markSaved(''), 2500); }
+}
+/* every finished run: judge the code it started with, in the lesson it started in */
+function lessonRan(c){
+  const r = runFor;
+  runFor = null;
+  lastRanId = r && !aborted ? r.id : null;
+  if (aborted || !r || !lesson || r.id !== lesson.id || r.mode !== 'starter') return;
+  if (lesson.id === 'playground' || r.src.trim() === starterFor(lesson).trim()) return;
+  applyTicks({passed: c.passed, failed: c.failed, src: r.src});
+}
+/* something a task asks for that is not code: recording, clicking the trace… */
+function taskEvent(what){
+  if (!lesson || lesson.id === 'playground' || mode !== 'starter') return;
+  if (what === 'trace-fail' && lastRanId !== lesson.id) return;
+  taskSeenIn(lesson.id).add(what);
+  applyTicks(null);
 }
 
 $('#lessonsBtn').addEventListener('click', () => ($('#drawer').hidden ? openDrawer() : closeDrawer()));
@@ -6726,8 +7155,33 @@ $('#lsReset').addEventListener('click', () => {
   b.dataset.armed = ''; b.textContent = 'Start over';
   try { localStorage.removeItem(workKey(lesson.id)); } catch (e) {}
   ta.value = starterFor(lesson); errLine = null; paint();
+  /* a fresh start earns its ticks again; a finished lesson stays finished */
+  TICKS[lesson.id] = []; saveTicks();
+  taskSeenIn(lesson.id).clear();
+  renderTasks();
 });
-$('#lsDoneBtn').addEventListener('click', () => setDone(lesson.id, !doneSet.has(lesson.id)));
+$('#lsTasks').addEventListener('toggle', () => {
+  if (tasksOpen === $('#lsTasks').open) return;
+  tasksOpen = $('#lsTasks').open;
+  saveState();
+});
+$('#resetProgress').addEventListener('click', () => {
+  const b = $('#resetProgress');
+  if (b.dataset.armed !== '1') {
+    b.dataset.armed = '1'; b.textContent = 'Sure? Click again';
+    setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Reset progress'; }, 2500);
+    return;
+  }
+  b.dataset.armed = ''; b.textContent = 'Reset progress';
+  doneSet.clear();
+  try { localStorage.setItem(DONE_KEY, '[]'); } catch (e) {}
+  Object.keys(TICKS).forEach(k => delete TICKS[k]);
+  saveTicks();
+  Object.keys(taskSeen).forEach(k => delete taskSeen[k]);
+  renderProgress();
+  renderCard();
+  renderDrawer();
+});
 $('#lsHint').addEventListener('click', () => {
   const L = LESSON[$('#lsHint').dataset.id];
   if (L) openLesson(L.id, {stay: true});
@@ -6747,6 +7201,7 @@ $('#routes').innerHTML = Object.keys(SITES)
 navTo('/');
 {
   const st = readState();
+  tasksOpen = st.tasks !== false;
   openLesson(LESSON[st.lesson] ? st.lesson : LESSONS[0].id, {mode: st.mode || 'starter'});
   if (st.fold) fold(true);
 }
